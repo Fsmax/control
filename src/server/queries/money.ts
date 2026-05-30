@@ -1,12 +1,13 @@
 import { createClient } from "@/utils/supabase/server"
 import type { Database } from "@/types/database.types"
+import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
 type DebtRow = Database["public"]["Tables"]["debts"]["Row"]
 type AssetRow = Database["public"]["Tables"]["assets"]["Row"]
 type RecurringRow = Database["public"]["Tables"]["recurring"]["Row"]
 
 export type DebtWithOutstanding = DebtRow & { outstanding: number }
-export type CurrencyAmount = { currency: string; amount: number }
+export type { CurrencyAmount }
 
 export type MoneySummary = {
   capital: CurrencyAmount[]
@@ -14,12 +15,6 @@ export type MoneySummary = {
   iOwe: CurrencyAmount[]
   net: CurrencyAmount[]
   upcoming: RecurringRow[]
-}
-
-function byCurrency(pairs: [string, number][]): CurrencyAmount[] {
-  const m = new Map<string, number>()
-  for (const [cur, amt] of pairs) m.set(cur, (m.get(cur) ?? 0) + amt)
-  return [...m.entries()].map(([currency, amount]) => ({ currency, amount }))
 }
 
 export async function listDebts(): Promise<DebtWithOutstanding[]> {

@@ -33,7 +33,12 @@ export default async function ProgressPage() {
           icon={Wallet}
           spark={d.capital.map((p) => p.value)}
         />
-        <StatCard label="Заработано (6 мес)" value={formatMoneyShort(earned.amount, earned.currency)} icon={HandCoins} />
+        <StatCard
+          label="Заработано (6 мес)"
+          value={formatMoneyShort(earned.amount, earned.currency)}
+          hint={earned.rest > 0 ? `+${earned.rest}` : undefined}
+          icon={HandCoins}
+        />
       </div>
 
       <ChartCard title="Удачные дни (12 недель)">

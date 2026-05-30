@@ -42,6 +42,7 @@ export default async function InvoicesPage({
         <StatCard
           label="К оплате"
           value={formatMoneyShort(receivables.amount, receivables.currency)}
+          hint={receivables.rest > 0 ? `+${receivables.rest}` : undefined}
           sub="выставлено, не оплачено"
           icon={FileText}
         />

@@ -48,12 +48,14 @@ export default async function DealsPage({
         <StatCard
           label="В воронке"
           value={formatMoneyShort(pipeline.amount, pipeline.currency)}
+          hint={pipeline.rest > 0 ? `+${pipeline.rest}` : undefined}
           sub={`${crm.pipelineCount} активных сделок`}
           icon={Briefcase}
         />
         <StatCard
           label="Выиграно за месяц"
           value={formatMoneyShort(won.amount, won.currency)}
+          hint={won.rest > 0 ? `+${won.rest}` : undefined}
           icon={Trophy}
           accent="success"
         />

@@ -1,7 +1,5 @@
-import { formatInTimeZone } from "date-fns-tz"
-
 import { createClient } from "@/utils/supabase/server"
-import { todayInTz, daysAgoInTz } from "@/lib/dates"
+import { todayInTz, daysAgoInTz, splitMinutesByDay } from "@/lib/dates"
 
 type ActiveSession = { id: string; started_at: string; taskTitle: string | null }
 type WorkTask = { id: string; title: string; status: "TODO" | "IN_PROGRESS" | "DONE" }
@@ -82,13 +80,15 @@ export async function getFocusData(): Promise<FocusData> {
   for (const s of sessions ?? []) {
     const startMs = new Date(s.started_at).getTime()
     const endMs = s.ended_at ? new Date(s.ended_at).getTime() : now
-    const mins = Math.max(0, (endMs - startMs) / 60000)
-    focusMinutesWeek += mins
-    if (formatInTimeZone(new Date(s.started_at), tz, "yyyy-MM-dd") === today) {
-      focusMinutesToday += mins
+    const perDay = splitMinutesByDay(startMs, endMs, tz)
+    let total = 0
+    for (const [day, mins] of perDay) {
+      total += mins
+      if (day === today) focusMinutesToday += mins
     }
+    focusMinutesWeek += total
     const key = s.project_id ?? "__none"
-    projMinutes.set(key, (projMinutes.get(key) ?? 0) + mins)
+    projMinutes.set(key, (projMinutes.get(key) ?? 0) + total)
   }
 
   const pname = new Map((projects ?? []).map((p) => [p.id, p.name]))

@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 
 import { createClient } from "@/utils/supabase/server"
 
@@ -16,6 +17,13 @@ export async function startFocus(
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) return { success: false, error: "Не авторизован" }
+
+  if (taskId && !z.string().uuid().safeParse(taskId).success) {
+    return { success: false, error: "Неверный id задачи" }
+  }
+  if (projectId && !z.string().uuid().safeParse(projectId).success) {
+    return { success: false, error: "Неверный id проекта" }
+  }
 
   // закрыть текущую активную
   await supabase

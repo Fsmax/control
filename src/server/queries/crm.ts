@@ -1,7 +1,10 @@
+import { formatInTimeZone } from "date-fns-tz"
+
 import { createClient } from "@/utils/supabase/server"
 import { todayInTz } from "@/lib/dates"
+import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
-export type CurrencyAmount = { currency: string; amount: number }
+export type { CurrencyAmount }
 
 export type CrmSummary = {
   pipeline: CurrencyAmount[] // открытые сделки (не WON/LOST) по валютам
@@ -13,12 +16,6 @@ export type CrmSummary = {
 }
 
 const OPEN_STAGES = new Set(["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION"])
-
-function byCurrency(pairs: [string, number][]): CurrencyAmount[] {
-  const m = new Map<string, number>()
-  for (const [cur, amt] of pairs) m.set(cur, (m.get(cur) ?? 0) + amt)
-  return [...m.entries()].map(([currency, amount]) => ({ currency, amount }))
-}
 
 export async function getCrmSummary(): Promise<CrmSummary> {
   const supabase = await createClient()
@@ -40,7 +37,11 @@ export async function getCrmSummary(): Promise<CrmSummary> {
     if (OPEN_STAGES.has(d.stage)) {
       pipelinePairs.push([d.currency, Number(d.amount)])
       pipelineCount++
-    } else if (d.stage === "WON" && d.won_at && d.won_at.slice(0, 10) >= monthStart) {
+    } else if (
+      d.stage === "WON" &&
+      d.won_at &&
+      formatInTimeZone(new Date(d.won_at), tz, "yyyy-MM-dd") >= monthStart
+    ) {
       wonPairs.push([d.currency, Number(d.amount)])
     }
   }

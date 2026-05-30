@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server"
 import type { Database } from "@/types/database.types"
+import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
 type ClientRow = Database["public"]["Tables"]["clients"]["Row"]
 type ContactRow = Database["public"]["Tables"]["contacts"]["Row"]
@@ -7,16 +8,10 @@ type DealRow = Database["public"]["Tables"]["deals"]["Row"]
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"]
 type InvoiceRow = Database["public"]["Tables"]["invoices"]["Row"]
 
-export type CurrencyAmount = { currency: string; amount: number }
+export type { CurrencyAmount }
 
 // Открытые этапы воронки (не выиграно/не проиграно).
 const OPEN_STAGES: string[] = ["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION"]
-
-function byCurrency(pairs: [string, number][]): CurrencyAmount[] {
-  const m = new Map<string, number>()
-  for (const [cur, amt] of pairs) m.set(cur, (m.get(cur) ?? 0) + amt)
-  return [...m.entries()].map(([currency, amount]) => ({ currency, amount }))
-}
 
 export type ClientWithStats = ClientRow & {
   dealsOpen: number

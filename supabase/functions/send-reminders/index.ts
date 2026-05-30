@@ -14,7 +14,14 @@ const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:fintask@example.co
 
 webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate)
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  // Защита эндпойнта: функция владеет service_role и рассылает push. Если задан
+  // CRON_SECRET — требуем его в заголовке Authorization (его же передаёт cron-job).
+  const cronSecret = Deno.env.get("CRON_SECRET")
+  if (cronSecret && req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
   const supabase = createClient(supabaseUrl, serviceKey)
   const nowIso = new Date().toISOString()
 

@@ -38,12 +38,14 @@ export default async function ClientsPage({
         <StatCard
           label="В воронке"
           value={formatMoneyShort(pipeline.amount, pipeline.currency)}
+          hint={pipeline.rest > 0 ? `+${pipeline.rest}` : undefined}
           sub={`${crm.pipelineCount} сделок`}
           icon={Briefcase}
         />
         <StatCard
           label="Счета к оплате"
           value={formatMoneyShort(receivables.amount, receivables.currency)}
+          hint={receivables.rest > 0 ? `+${receivables.rest}` : undefined}
           sub={crm.overdueInvoices > 0 ? `${crm.overdueInvoices} просрочено` : "дебиторка"}
           icon={FileText}
           accent={crm.overdueInvoices > 0 ? "danger" : "default"}

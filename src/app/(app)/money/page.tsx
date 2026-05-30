@@ -79,10 +79,17 @@ export default async function MoneyPage() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Капитал" value={formatMoneyShort(capital.amount, capital.currency)} sub="активы" icon={Wallet} />
+        <StatCard
+          label="Капитал"
+          value={formatMoneyShort(capital.amount, capital.currency)}
+          hint={capital.rest > 0 ? `+${capital.rest}` : undefined}
+          sub="активы"
+          icon={Wallet}
+        />
         <StatCard
           label="Чистыми"
           value={formatMoneyShort(net.amount, net.currency)}
+          hint={net.rest > 0 ? `+${net.rest}` : undefined}
           sub="активы + дебиторка − долги"
           icon={Scale}
           accent={net.amount >= 0 ? "success" : "danger"}
@@ -90,6 +97,7 @@ export default async function MoneyPage() {
         <StatCard
           label="Мне должны"
           value={formatMoneyShort(owed.amount, owed.currency)}
+          hint={owed.rest > 0 ? `+${owed.rest}` : undefined}
           sub="дебиторка"
           icon={ArrowDownLeft}
           accent={owed.amount > 0 ? "success" : "default"}
@@ -97,6 +105,7 @@ export default async function MoneyPage() {
         <StatCard
           label="Я должен"
           value={formatMoneyShort(iOwe.amount, iOwe.currency)}
+          hint={iOwe.rest > 0 ? `+${iOwe.rest}` : undefined}
           sub="кредиторка"
           icon={ArrowUpRight}
           accent={iOwe.amount > 0 ? "danger" : "default"}

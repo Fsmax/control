@@ -38,6 +38,7 @@ export default async function FocusPage() {
         <StatCard
           label="Заработано за месяц"
           value={formatMoneyShort(earned.amount, earned.currency)}
+          hint={earned.rest > 0 ? `+${earned.rest}` : undefined}
           sub="по закрытым задачам"
           icon={HandCoins}
         />

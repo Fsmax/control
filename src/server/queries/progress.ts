@@ -1,7 +1,5 @@
-import { formatInTimeZone } from "date-fns-tz"
-
 import { createClient } from "@/utils/supabase/server"
-import { todayInTz, daysAgoInTz, addDaysYmd } from "@/lib/dates"
+import { todayInTz, daysAgoInTz, addDaysYmd, splitMinutesByDay } from "@/lib/dates"
 import { computeStreak, STREAK_WINDOW_DAYS } from "@/lib/streak"
 
 export type Point = { label: string; value: number }
@@ -73,8 +71,9 @@ export async function getProgressData(): Promise<ProgressData> {
   for (const s of sessions ?? []) {
     const startMs = new Date(s.started_at).getTime()
     const endMs = s.ended_at ? new Date(s.ended_at).getTime() : now
-    const day = formatInTimeZone(new Date(s.started_at), tz, "yyyy-MM-dd")
-    focusMap.set(day, (focusMap.get(day) ?? 0) + Math.max(0, (endMs - startMs) / 60000))
+    for (const [day, mins] of splitMinutesByDay(startMs, endMs, tz)) {
+      focusMap.set(day, (focusMap.get(day) ?? 0) + mins)
+    }
   }
   const focusByDay: Point[] = []
   for (let i = 13; i >= 0; i--) {

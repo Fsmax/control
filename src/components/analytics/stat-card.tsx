@@ -11,6 +11,7 @@ import { Sparkline } from "@/components/analytics/sparkline"
 export function StatCard({
   label,
   value,
+  hint,
   sub,
   delta,
   icon: Icon,
@@ -22,6 +23,8 @@ export function StatCard({
 }: {
   label: string
   value: React.ReactNode
+  /** Мелкая приписка справа от значения (напр. «+1» — есть суммы в других валютах). */
+  hint?: string
   sub?: string
   /** Дельта в процентах: >0 зелёная со стрелкой вверх, <0 красная вниз. */
   delta?: number
@@ -55,6 +58,14 @@ export function StatCard({
         )}
       >
         {value}
+        {hint && (
+          <span
+            className="ml-1 align-middle text-xs font-medium text-muted-foreground"
+            title="Есть суммы в других валютах"
+          >
+            {hint}
+          </span>
+        )}
       </div>
 
       <div className="mt-auto flex items-end justify-between gap-2">

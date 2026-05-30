@@ -63,6 +63,7 @@ export default async function DashboardPage() {
           <StatCard
             label="В воронке"
             value={formatMoneyShort(pipeline.amount, pipeline.currency)}
+            hint={pipeline.rest > 0 ? `+${pipeline.rest}` : undefined}
             sub={`${crm.pipelineCount} активных сделок`}
             icon={Briefcase}
             href="/deals"
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
           <StatCard
             label="Выиграно за месяц"
             value={formatMoneyShort(won.amount, won.currency)}
+            hint={won.rest > 0 ? `+${won.rest}` : undefined}
             icon={Trophy}
             accent="success"
             href="/deals"
@@ -77,6 +79,7 @@ export default async function DashboardPage() {
           <StatCard
             label="Счета к оплате"
             value={formatMoneyShort(receivable.amount, receivable.currency)}
+            hint={receivable.rest > 0 ? `+${receivable.rest}` : undefined}
             sub={crm.overdueInvoices > 0 ? `${crm.overdueInvoices} просрочено` : "дебиторка"}
             icon={FileText}
             accent={crm.overdueInvoices > 0 ? "danger" : "default"}
@@ -93,6 +96,7 @@ export default async function DashboardPage() {
           <StatCard
             label="Капитал"
             value={formatMoneyShort(capital.amount, capital.currency)}
+            hint={capital.rest > 0 ? `+${capital.rest}` : undefined}
             sub="активы"
             icon={Wallet}
             spark={capitalSpark}
@@ -101,6 +105,7 @@ export default async function DashboardPage() {
           <StatCard
             label="Чистыми"
             value={formatMoneyShort(net.amount, net.currency)}
+            hint={net.rest > 0 ? `+${net.rest}` : undefined}
             sub="активы − долги"
             icon={Scale}
             accent={net.amount >= 0 ? "success" : "danger"}
