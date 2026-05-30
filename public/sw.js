@@ -1,4 +1,4 @@
-// FinTask service worker: приём Web Push и показ уведомлений.
+// Control service worker: приём Web Push и показ уведомлений.
 
 self.addEventListener("push", (event) => {
   let data = {}
@@ -7,7 +7,7 @@ self.addEventListener("push", (event) => {
   } catch {
     data = { body: event.data ? event.data.text() : "" }
   }
-  const title = data.title || "FinTask"
+  const title = data.title || "Control"
   const options = {
     body: data.body || "",
     icon: "/favicon.ico",

@@ -40,7 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# локальные setup-файлы с секретами (VAPID, CRON_SECRET и т.п.)
 vapid-setup.local.txt
+*-setup.local.txt
+*.local.txt
 
 # supabase CLI cache (содержит pooler-url / project-ref — НЕ коммитить)
 supabase/.temp/
