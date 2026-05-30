@@ -20,7 +20,7 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-svh">
-      <Sidebar />
+      <Sidebar email={user.email ?? ""} />
       <div className="flex flex-1 flex-col">
         <Header email={user.email ?? ""} />
         <MobileNav />

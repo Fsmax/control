@@ -23,11 +23,21 @@ const COLUMNS = [
 
 type Status = (typeof COLUMNS)[number]["key"]
 
+type Priority = "LOW" | "MEDIUM" | "HIGH"
+
 type KTask = {
   id: string
   title: string
   status: Status
   area: "WORK" | "PERSONAL"
+  priority: Priority
+  is_meeting?: boolean
+}
+
+const PRIORITY_ACCENT: Record<Priority, string> = {
+  HIGH: "before:bg-destructive",
+  MEDIUM: "before:bg-warning",
+  LOW: "before:bg-border",
 }
 
 function Card({ task }: { task: KTask }) {
@@ -45,13 +55,24 @@ function Card({ task }: { task: KTask }) {
       {...listeners}
       {...attributes}
       className={cn(
-        "cursor-grab touch-none rounded-md border bg-card px-3 py-2 text-sm shadow-xs",
-        isDragging && "opacity-50"
+        "relative cursor-grab touch-none rounded-lg border bg-card py-2 pl-3 pr-2.5 text-sm shadow-sm transition-shadow hover:shadow-md",
+        "before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-full",
+        PRIORITY_ACCENT[task.priority],
+        isDragging && "opacity-50 shadow-md"
       )}
     >
-      <div className="truncate">{task.title}</div>
-      <div className="mt-1 text-xs text-muted-foreground">
-        {task.area === "WORK" ? "Работа" : "Личное"}
+      <div className="truncate font-medium">{task.title}</div>
+      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+        {task.is_meeting && (
+          <span className="rounded bg-accent px-1 py-0.5 text-[10px] font-medium text-accent-foreground">
+            Встреча
+          </span>
+        )}
+        {task.area === "WORK" ? (
+          <span className="rounded bg-accent px-1 py-0.5 font-medium text-accent-foreground">Работа</span>
+        ) : (
+          <span>Личное</span>
+        )}
       </div>
     </div>
   )

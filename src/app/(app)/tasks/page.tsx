@@ -16,7 +16,7 @@ export default async function TasksPage() {
   const projectOpts = projects.map((p) => ({ id: p.id, name: p.name }))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Задачи</h1>
       <TaskViews
         tasks={tasks}

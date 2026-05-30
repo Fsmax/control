@@ -8,8 +8,11 @@ export function Header({ email }: { email: string }) {
       <span className="font-semibold tracking-tight md:hidden">FinTask</span>
       <div className="ml-auto flex items-center gap-2">
         <NotificationPrompt />
-        <ThemeToggle />
-        <UserMenu email={email} />
+        {/* Тема и аккаунт на десктопе живут в сайдбаре; в шапке — только на мобильных. */}
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <UserMenu email={email} />
+        </div>
       </div>
     </header>
   )

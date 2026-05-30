@@ -2,7 +2,17 @@
 
 import { useTransition } from "react"
 import { formatInTimeZone } from "date-fns-tz"
-import { CalendarClock, CheckCircle2, Circle, Clock, Play, Trash2, Users } from "lucide-react"
+import {
+  CalendarClock,
+  CalendarPlus,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Folder,
+  Play,
+  Trash2,
+  Users,
+} from "lucide-react"
 
 import { toggleDone, deleteTask, scheduleTask } from "@/server/actions/tasks"
 import { startFocus } from "@/server/actions/focus"
@@ -18,6 +28,7 @@ export type TaskCardData = {
   start_at: string | null
   end_at: string | null
   due_date: string | null
+  scheduled_for: string | null
   is_meeting?: boolean
 }
 
@@ -71,11 +82,15 @@ export function TaskCard({
   task,
   tz,
   today,
+  projectName,
+  showSchedule = false,
   overdue = false,
 }: {
   task: TaskCardData
   tz: string
   today: string
+  projectName?: string
+  showSchedule?: boolean
   overdue?: boolean
 }) {
   const [pending, start] = useTransition()
@@ -85,9 +100,11 @@ export function TaskCard({
   const time = task.start_at ? formatInTimeZone(new Date(task.start_at), tz, "HH:mm") : null
   const timeEnd = task.end_at ? formatInTimeZone(new Date(task.end_at), tz, "HH:mm") : null
 
-  // Перенос: просроченную — на сегодня, обычную — на завтра.
-  const moveTo = overdue ? today : addDaysYmd(today, 1)
-  const moveLabel = overdue ? "Перенести на сегодня" : "Перенести на завтра"
+  // Перенос по расписанию: что на сегодня — двигаем на завтра, остальное — на сегодня.
+  const scheduledToday = task.scheduled_for === today
+  const moveTo = scheduledToday ? addDaysYmd(today, 1) : today
+  const moveLabel = scheduledToday ? "Перенести на завтра" : "Запланировать на сегодня"
+  const MoveIcon = scheduledToday ? CalendarClock : CalendarPlus
 
   const run = (fn: () => Promise<unknown>) => start(async () => void (await fn()))
 
@@ -142,13 +159,20 @@ export function TaskCard({
           {task.area === "WORK" && (
             <span className="rounded bg-accent px-1.5 py-0.5 font-medium text-accent-foreground">Работа</span>
           )}
+          {projectName && (
+            <span className="inline-flex items-center gap-1">
+              <Folder className="size-3" />
+              {projectName}
+            </span>
+          )}
+          {showSchedule && task.scheduled_for && !scheduledToday && (
+            <span className="inline-flex items-center gap-1">
+              <CalendarClock className="size-3" />
+              план {shortDate(task.scheduled_for)}
+            </span>
+          )}
           {task.due_date && (
-            <span
-              className={cn(
-                "inline-flex items-center gap-1",
-                overdue && "font-medium text-destructive"
-              )}
-            >
+            <span className={cn("inline-flex items-center gap-1", overdue && "font-medium text-destructive")}>
               <CalendarClock className="size-3" />
               до {shortDate(task.due_date)}
             </span>
@@ -161,7 +185,7 @@ export function TaskCard({
           <Play className="size-3.5" />
         </IconButton>
         <IconButton title={moveLabel} disabled={pending} onClick={() => run(() => scheduleTask(task.id, moveTo))}>
-          <CalendarClock className="size-3.5" />
+          <MoveIcon className="size-3.5" />
         </IconButton>
         <IconButton title="Удалить" danger disabled={pending} onClick={() => run(() => deleteTask(task.id))}>
           <Trash2 className="size-3.5" />

@@ -5,7 +5,7 @@ import { getProfile } from "@/server/queries/profile"
 import { todayInTz } from "@/lib/dates"
 import { Badge } from "@/components/ui/badge"
 import { TaskForm } from "@/components/tasks/task-form"
-import { TaskList } from "@/components/tasks/task-list"
+import { TaskTable } from "@/components/tasks/task-table"
 
 export default async function ProjectPage({
   params,
@@ -22,7 +22,7 @@ export default async function ProjectPage({
   const projectOpts = [{ id: data.project.id, name: data.project.name }]
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">{data.project.name}</h1>
@@ -42,7 +42,7 @@ export default async function ProjectPage({
         <p className="text-sm text-muted-foreground">{data.project.description}</p>
       )}
 
-      <TaskList tasks={data.tasks} projects={projectOpts} today={today} />
+      <TaskTable tasks={data.tasks} projects={projectOpts} today={today} />
     </div>
   )
 }
