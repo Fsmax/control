@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
-import { LogIn, Zap } from "lucide-react"
+import { useActionState, useState } from "react"
+import { Zap } from "lucide-react"
 
-import { createClient } from "@/utils/supabase/client"
+import { signInWithPassword, signUpWithPassword } from "@/server/actions/auth"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Card,
   CardContent,
@@ -13,24 +14,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+type Mode = "signin" | "signup"
+type AuthState = { error?: string; message?: string }
 
-  async function signInWithGithub() {
-    setLoading(true)
-    setError(null)
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    })
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-    }
-    // при успехе браузер уходит на страницу провайдера
-  }
+export default function LoginPage() {
+  const [mode, setMode] = useState<Mode>("signin")
+  const action = mode === "signin" ? signInWithPassword : signUpWithPassword
+  const [state, formAction, pending] = useActionState<AuthState, FormData>(
+    action,
+    {}
+  )
 
   return (
     <div className="flex min-h-svh items-center justify-center bg-muted/30 p-4">
@@ -40,14 +33,50 @@ export default function LoginPage() {
             <Zap className="size-6" />
           </div>
           <CardTitle className="text-xl">Control</CardTitle>
-          <CardDescription>Дисциплина и контроль. Войдите, чтобы продолжить.</CardDescription>
+          <CardDescription>
+            {mode === "signin"
+              ? "Дисциплина и контроль. Войдите, чтобы продолжить."
+              : "Создайте аккаунт, чтобы начать."}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Button onClick={signInWithGithub} disabled={loading} className="w-full">
-            <LogIn className="size-4" />
-            {loading ? "Перенаправление…" : "Войти через GitHub"}
-          </Button>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        <CardContent className="flex flex-col gap-4">
+          <form action={formAction} className="flex flex-col gap-3">
+            <Input
+              type="email"
+              name="email"
+              placeholder="E-mail"
+              autoComplete="email"
+              required
+            />
+            <Input
+              type="password"
+              name="password"
+              placeholder="Пароль"
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              minLength={8}
+              required
+            />
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending
+                ? "Подождите…"
+                : mode === "signin"
+                  ? "Войти"
+                  : "Зарегистрироваться"}
+            </Button>
+          </form>
+
+          {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+          {state.message && <p className="text-sm text-success">{state.message}</p>}
+
+          <button
+            type="button"
+            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            {mode === "signin"
+              ? "Нет аккаунта? Зарегистрироваться"
+              : "Уже есть аккаунт? Войти"}
+          </button>
         </CardContent>
       </Card>
     </div>
