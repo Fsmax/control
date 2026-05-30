@@ -1,94 +1,76 @@
-import { getProgressData } from "@/server/queries/progress"
-import { formatMoney } from "@/lib/utils"
-import { SimpleBarChart, SimpleLineChart } from "@/components/progress/charts"
-import { StreakHeatmap } from "@/components/progress/streak-heatmap"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Flame, Trophy, Wallet, HandCoins } from "lucide-react"
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-2xl font-semibold tabular-nums">{value}</div>
-    </div>
-  )
-}
+import { getProgressData } from "@/server/queries/progress"
+import { formatMoney, formatMoneyShort, primaryAmount } from "@/lib/utils"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/analytics/stat-card"
+import { ChartCard } from "@/components/analytics/chart-card"
+import { EmptyState } from "@/components/ui/empty-state"
+import { AreaTrend, BarSeries } from "@/components/analytics/charts"
+import { StreakHeatmap } from "@/components/progress/streak-heatmap"
 
 export default async function ProgressPage() {
   const d = await getProgressData()
+  const earned = primaryAmount(d.earnings)
+  const capitalLast = d.capital.length > 0 ? d.capital[d.capital.length - 1].value : 0
+  const capitalCur = d.earnings[0]?.currency ?? "UZS"
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Прогресс</h1>
+    <div className="space-y-6">
+      <PageHeader title="Прогресс" description="Серии, выполнено, фокус, заработок и капитал" />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Stat label="Текущая серия" value={`${d.streak.current} дн.`} />
-        <Stat label="Лучшая серия" value={`${d.streak.best} дн.`} />
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Текущая серия"
+          value={`${d.streak.current} дн.`}
+          icon={Flame}
+          spark={d.doneByDay.map((p) => p.value)}
+        />
+        <StatCard label="Лучшая серия" value={`${d.streak.best} дн.`} icon={Trophy} />
+        <StatCard
+          label="Капитал"
+          value={formatMoneyShort(capitalLast, capitalCur)}
+          icon={Wallet}
+          spark={d.capital.map((p) => p.value)}
+        />
+        <StatCard label="Заработано (6 мес)" value={formatMoneyShort(earned.amount, earned.currency)} icon={HandCoins} />
       </div>
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Удачные дни (12 недель)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <StreakHeatmap days={d.heatmap} dayGoal={d.dayGoal} />
-        </CardContent>
-      </Card>
+      <ChartCard title="Удачные дни (12 недель)">
+        <StreakHeatmap days={d.heatmap} dayGoal={d.dayGoal} />
+      </ChartCard>
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Выполнено по дням (30)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SimpleBarChart data={d.doneByDay} />
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <ChartCard title="Выполнено по дням (30)">
+          <BarSeries data={d.doneByDay} />
+        </ChartCard>
+        <ChartCard title="Фокус, мин/день (14)">
+          <BarSeries data={d.focusByDay} />
+        </ChartCard>
+      </div>
 
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">Фокус, мин/день (14)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <SimpleBarChart data={d.focusByDay} />
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Заработано (6 мес)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {d.earnings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">—</p>
-            ) : (
-              <ul className="space-y-1 text-sm">
-                {d.earnings.map((e) => (
-                  <li key={e.currency} className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">{e.currency}</span>
-                    <span className="font-semibold tabular-nums">{formatMoney(e.amount, e.currency)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Капитал (базовая валюта)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {d.capital.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Мало данных.</p>
-            ) : (
-              <SimpleLineChart data={d.capital} />
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <ChartCard title="Динамика капитала" className="xl:col-span-2">
+          {d.capital.length > 1 ? (
+            <AreaTrend data={d.capital} format={(v) => formatMoneyShort(v, capitalCur)} />
+          ) : (
+            <EmptyState icon={Wallet} title="Мало данных" description="Обновляйте стоимость активов для графика." />
+          )}
+        </ChartCard>
+        <ChartCard title="Заработано (6 мес)">
+          {d.earnings.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">—</p>
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {d.earnings.map((e) => (
+                <li key={e.currency} className="flex justify-between gap-2 border-b pb-2 last:border-0">
+                  <span className="text-muted-foreground">{e.currency}</span>
+                  <span className="font-semibold tabular-nums">{formatMoney(e.amount, e.currency)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </ChartCard>
       </div>
     </div>
   )

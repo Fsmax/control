@@ -5,6 +5,8 @@ export const projectCreateSchema = z.object({
   area: z.enum(["WORK", "PERSONAL"]).default("PERSONAL"),
   description: z.string().trim().max(2000).nullable().optional(),
   color: z.string().trim().max(32).nullable().optional(),
+  client_id: z.string().uuid().nullable().optional(),
+  deal_id: z.string().uuid().nullable().optional(),
 })
 
 export type ProjectCreateInput = z.input<typeof projectCreateSchema>

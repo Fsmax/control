@@ -1,42 +1,46 @@
+import { Timer, CalendarRange, HandCoins } from "lucide-react"
+
 import { getFocusData } from "@/server/queries/focus"
+import { primaryAmount, formatMoneyShort } from "@/lib/utils"
+import { PageHeader } from "@/components/ui/page-header"
+import { StatCard } from "@/components/analytics/stat-card"
+import { ChartCard } from "@/components/analytics/chart-card"
 import { FocusTimer } from "@/components/focus/focus-timer"
 import { FocusTodayWork } from "@/components/focus/focus-today-work"
 import { ProjectTimeTable } from "@/components/focus/project-time-table"
 import { EarningsCard } from "@/components/focus/earnings-card"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-0.5 text-2xl font-semibold tabular-nums">{value}</div>
-      {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-    </div>
-  )
-}
 
 export default async function FocusPage() {
   const d = await getFocusData()
   const hoursWeek = Math.round((d.focusMinutesWeek / 60) * 10) / 10
+  const earned = primaryAmount(d.earnings, d.baseCurrency)
+  const focusPct = d.focusGoalMin > 0 ? (d.focusMinutesToday / d.focusGoalMin) * 100 : 0
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Работа и фокус</h1>
+    <div className="space-y-6">
+      <PageHeader title="Работа и фокус" description="Таймер, часы в фокусе, время по проектам и заработок" />
 
       <FocusTimer active={d.active} />
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Stat
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StatCard
           label="Фокус сегодня"
           value={`${Math.round(d.focusMinutesToday)} мин`}
-          sub={`цель ${d.focusGoalMin} мин`}
+          sub={`цель ${d.focusGoalMin} мин · ${Math.round(focusPct)}%`}
+          icon={Timer}
         />
-        <Stat label="Фокус за неделю" value={`${hoursWeek.toLocaleString("ru-RU")} ч`} />
+        <StatCard
+          label="Фокус за неделю"
+          value={`${hoursWeek.toLocaleString("ru-RU")} ч`}
+          sub="последние 7 дней"
+          icon={CalendarRange}
+        />
+        <StatCard
+          label="Заработано за месяц"
+          value={formatMoneyShort(earned.amount, earned.currency)}
+          sub="по закрытым задачам"
+          icon={HandCoins}
+        />
       </div>
 
       <section className="space-y-2">
@@ -44,23 +48,13 @@ export default async function FocusPage() {
         <FocusTodayWork tasks={d.todayWork} />
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Время по проектам (7 дней)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProjectTimeTable rows={d.byProject} />
-          </CardContent>
-        </Card>
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium text-muted-foreground">Заработано за месяц</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <EarningsCard items={d.earnings} />
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <ChartCard title="Время по проектам (7 дней)">
+          <ProjectTimeTable rows={d.byProject} />
+        </ChartCard>
+        <ChartCard title="Заработано за месяц">
+          <EarningsCard items={d.earnings} />
+        </ChartCard>
       </div>
     </div>
   )

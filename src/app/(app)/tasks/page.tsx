@@ -2,6 +2,7 @@ import { listTasks } from "@/server/queries/tasks"
 import { listProjects } from "@/server/queries/projects"
 import { getProfile } from "@/server/queries/profile"
 import { todayInTz } from "@/lib/dates"
+import { PageHeader } from "@/components/ui/page-header"
 import { TaskViews } from "@/components/tasks/task-views"
 
 export default async function TasksPage() {
@@ -17,7 +18,7 @@ export default async function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Задачи</h1>
+      <PageHeader title="Задачи" description="Бэклог: список, канбан и таймлайн" />
       <TaskViews
         tasks={tasks}
         projects={projectOpts}

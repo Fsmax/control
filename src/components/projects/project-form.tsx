@@ -18,21 +18,29 @@ import {
 const field =
   "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 
-export function ProjectForm() {
-  const [open, setOpen] = useState(false)
+export function ProjectForm({
+  clients = [],
+  defaultOpen = false,
+}: {
+  clients?: { id: string; name: string }[]
+  defaultOpen?: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
   const [pending, start] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [name, setName] = useState("")
   const [area, setArea] = useState<"WORK" | "PERSONAL">("PERSONAL")
+  const [clientId, setClientId] = useState("")
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) return
     start(async () => {
-      const res = await createProject({ name, area })
+      const res = await createProject({ name, area, client_id: clientId || null })
       if (res.success) {
         setName("")
         setArea("PERSONAL")
+        setClientId("")
         setError(null)
         setOpen(false)
       } else {
@@ -68,6 +76,19 @@ export function ProjectForm() {
               <option value="WORK">Работа</option>
             </select>
           </label>
+          {clients.length > 0 && (
+            <label className="block space-y-1 text-xs text-muted-foreground">
+              Клиент <span className="opacity-70">(необязательно)</span>
+              <select className={field} value={clientId} onChange={(e) => setClientId(e.target.value)}>
+                <option value="">— без клиента —</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={pending || !name.trim()}>

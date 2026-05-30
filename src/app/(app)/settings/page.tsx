@@ -1,12 +1,13 @@
 import { getProfile } from "@/server/queries/profile"
+import { PageHeader } from "@/components/ui/page-header"
 import { SettingsForm } from "@/components/settings/settings-form"
 
 export default async function SettingsPage() {
   const profile = await getProfile()
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold">Настройки</h1>
+    <div className="max-w-2xl space-y-6">
+      <PageHeader title="Настройки" description="Профиль, цель дня, таймзона и базовая валюта" />
       {profile ? (
         <SettingsForm
           profile={{
