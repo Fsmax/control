@@ -1,8 +1,8 @@
 import { getToday } from "@/server/queries/today"
-import { DayProgress } from "@/components/today/day-progress"
-import { StreakBadge } from "@/components/today/streak-badge"
+import { DayHero } from "@/components/today/day-hero"
+import { TaskCard } from "@/components/today/task-card"
+import { OverdueCard } from "@/components/today/overdue-card"
 import { AddTask } from "@/components/today/add-task"
-import { TodayList } from "@/components/today/today-list"
 
 const WEEKDAYS = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"]
 const MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
@@ -18,26 +18,39 @@ export default async function TodayPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-semibold tracking-tight">Сегодня</h1>
-          <p className="text-sm capitalize text-muted-foreground">
-            {humanDate(data.today)}
-          </p>
-        </div>
-        <StreakBadge
-          current={data.streak.current}
-          dayGoal={data.dayGoal}
-          doneToday={data.doneToday}
-        />
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight">Сегодня</h1>
 
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
-        <DayProgress done={data.progress.done} total={data.progress.total} />
-      </div>
+      <DayHero
+        date={humanDate(data.today)}
+        doneToday={data.doneToday}
+        dayGoal={data.dayGoal}
+        planned={data.planned.length}
+        plannedDone={data.progress.done}
+        streak={data.streak.current}
+      />
 
       <AddTask today={data.today} />
-      <TodayList tasks={data.planned} overdue={data.overdue} />
+
+      <OverdueCard tasks={data.overdue} tz={data.tz} today={data.today} />
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">План на день</h2>
+        {data.planned.length === 0 ? (
+          <div className="rounded-xl border border-dashed bg-card/50 px-4 py-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              Пока пусто. Добавьте 3–5 дел на сегодня.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {data.planned.map((t) => (
+              <li key={t.id}>
+                <TaskCard task={t} tz={data.tz} today={data.today} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   )
 }
