@@ -3,7 +3,6 @@
 import { Search } from "lucide-react"
 
 import { CommandPalette, openCommandPalette } from "@/components/layout/command-palette"
-import { CreateMenu } from "@/components/layout/create-menu"
 import { NotificationPrompt } from "@/components/layout/notification-prompt"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { UserMenu } from "@/components/layout/user-menu"
@@ -16,7 +15,7 @@ import { UserMenu } from "@/components/layout/user-menu"
 export function Topbar({ email }: { email: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur-sm">
-      <span className="font-semibold tracking-tight md:hidden">FinTask</span>
+      <span className="font-semibold tracking-tight md:hidden">Control</span>
 
       <button
         type="button"
@@ -32,7 +31,6 @@ export function Topbar({ email }: { email: string }) {
 
       <div className="ml-auto flex items-center gap-2">
         <NotificationPrompt />
-        <CreateMenu />
         <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
           <UserMenu email={email} />

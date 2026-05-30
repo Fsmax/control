@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { LogIn, Target } from "lucide-react"
+import { LogIn, Zap } from "lucide-react"
 
 import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -37,9 +37,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-lg">
         <CardHeader>
           <div className="mb-1 flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <Target className="size-6" />
+            <Zap className="size-6" />
           </div>
-          <CardTitle className="text-xl">FinTask</CardTitle>
+          <CardTitle className="text-xl">Control</CardTitle>
           <CardDescription>Дисциплина и контроль. Войдите, чтобы продолжить.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">

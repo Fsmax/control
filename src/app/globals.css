@@ -5,115 +5,115 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =============================================================================
-   FinTask — дизайн-токены. Тема «спокойный нейтрал + индиго».
-   Нейтрально-серые поверхности, единственный акцент — индиго.
-   Семантика цвета (Finance.md §7): сделано / мне должны — зелёный,
-   просрочено / я должен — красный. Акцент в эту семантику не вмешивается.
+   Control — дизайн-токены. Тема «чёрно-белый минимализм».
+   Монохромные поверхности и акцент (чёрный / на тёмной теме — белый).
+   Цвет ТОЛЬКО ради смысла (Finance.md §7): сделано / мне должны — зелёный,
+   просрочено / я должен — красный. Всё остальное — оттенки серого.
    ========================================================================== */
 
 :root {
   --radius: 0.7rem;
 
   /* Поверхности */
-  --background: oklch(0.995 0 0);
-  --foreground: oklch(0.22 0.005 270);
+  --background: oklch(0.99 0 0);
+  --foreground: oklch(0.18 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.005 270);
+  --card-foreground: oklch(0.18 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.005 270);
+  --popover-foreground: oklch(0.18 0 0);
 
-  /* Акцент — индиго */
-  --primary: oklch(0.53 0.20 273);
-  --primary-foreground: oklch(0.985 0.002 270);
+  /* Акцент — чёрный (минимализм) */
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.99 0 0);
 
   /* Нейтральные */
-  --secondary: oklch(0.968 0.002 270);
-  --secondary-foreground: oklch(0.30 0.006 270);
-  --muted: oklch(0.968 0.002 270);
-  --muted-foreground: oklch(0.535 0.006 270);
-  /* accent — лёгкий индиго-намёк (для активной навигации и ховеров) */
-  --accent: oklch(0.955 0.022 273);
-  --accent-foreground: oklch(0.40 0.13 273);
+  --secondary: oklch(0.962 0 0);
+  --secondary-foreground: oklch(0.30 0 0);
+  --muted: oklch(0.962 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  /* accent — светло-серый намёк (для активной навигации и ховеров) */
+  --accent: oklch(0.95 0 0);
+  --accent-foreground: oklch(0.22 0 0);
 
-  /* Статусы */
+  /* Статусы — цвет только ради смысла */
   --destructive: oklch(0.585 0.215 26);
-  --destructive-foreground: oklch(0.985 0.005 270);
-  --success: oklch(0.60 0.13 152);
-  --success-foreground: oklch(0.985 0.01 152);
-  --warning: oklch(0.70 0.16 65);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.58 0.12 152);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.70 0.15 65);
 
   /* Контуры / фокус */
-  --border: oklch(0.917 0.003 270);
-  --input: oklch(0.917 0.003 270);
-  --ring: oklch(0.53 0.20 273);
+  --border: oklch(0.908 0 0);
+  --input: oklch(0.908 0 0);
+  --ring: oklch(0.40 0 0);
 
-  /* Графики */
-  --chart-1: oklch(0.53 0.20 273);
-  --chart-2: oklch(0.62 0.17 295);
-  --chart-3: oklch(0.60 0.13 152);
-  --chart-4: oklch(0.62 0.18 26);
-  --chart-5: oklch(0.65 0.10 240);
+  /* Графики — оттенки серого */
+  --chart-1: oklch(0.205 0 0);
+  --chart-2: oklch(0.42 0 0);
+  --chart-3: oklch(0.58 0 0);
+  --chart-4: oklch(0.72 0 0);
+  --chart-5: oklch(0.84 0 0);
 
   /* Боковое меню */
-  --sidebar: oklch(0.982 0.002 270);
-  --sidebar-foreground: oklch(0.22 0.005 270);
-  --sidebar-primary: oklch(0.53 0.20 273);
-  --sidebar-primary-foreground: oklch(0.985 0.002 270);
-  --sidebar-accent: oklch(0.955 0.022 273);
-  --sidebar-accent-foreground: oklch(0.40 0.13 273);
-  --sidebar-border: oklch(0.917 0.003 270);
-  --sidebar-ring: oklch(0.53 0.20 273);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.18 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0 0);
+  --sidebar-accent-foreground: oklch(0.22 0 0);
+  --sidebar-border: oklch(0.908 0 0);
+  --sidebar-ring: oklch(0.40 0 0);
 }
 
 .dark {
-  /* Поверхности — нейтральный графит, не чистый чёрный */
-  --background: oklch(0.185 0.004 270);
-  --foreground: oklch(0.93 0.003 270);
-  --card: oklch(0.225 0.005 270);
-  --card-foreground: oklch(0.93 0.003 270);
-  --popover: oklch(0.225 0.005 270);
-  --popover-foreground: oklch(0.93 0.003 270);
+  /* Поверхности — графит, не чистый чёрный */
+  --background: oklch(0.165 0 0);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.215 0 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.215 0 0);
+  --popover-foreground: oklch(0.95 0 0);
 
-  /* Акцент — индиго ярче на тёмном */
-  --primary: oklch(0.66 0.18 274);
-  --primary-foreground: oklch(0.16 0.02 274);
+  /* Акцент — белый на тёмном */
+  --primary: oklch(0.95 0 0);
+  --primary-foreground: oklch(0.18 0 0);
 
   /* Нейтральные */
-  --secondary: oklch(0.27 0.006 270);
-  --secondary-foreground: oklch(0.93 0.003 270);
-  --muted: oklch(0.27 0.006 270);
-  --muted-foreground: oklch(0.715 0.008 270);
-  --accent: oklch(0.32 0.04 274);
-  --accent-foreground: oklch(0.86 0.06 274);
+  --secondary: oklch(0.265 0 0);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.265 0 0);
+  --muted-foreground: oklch(0.70 0 0);
+  --accent: oklch(0.30 0 0);
+  --accent-foreground: oklch(0.95 0 0);
 
   /* Статусы */
   --destructive: oklch(0.64 0.20 26);
-  --destructive-foreground: oklch(0.96 0.01 270);
-  --success: oklch(0.68 0.13 154);
-  --success-foreground: oklch(0.18 0.02 154);
-  --warning: oklch(0.78 0.15 70);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.68 0.12 154);
+  --success-foreground: oklch(0.16 0 0);
+  --warning: oklch(0.78 0.14 70);
 
   /* Контуры / фокус */
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.66 0.18 274);
+  --ring: oklch(0.70 0 0);
 
-  /* Графики */
-  --chart-1: oklch(0.66 0.18 274);
-  --chart-2: oklch(0.70 0.16 300);
-  --chart-3: oklch(0.68 0.13 154);
-  --chart-4: oklch(0.66 0.18 26);
-  --chart-5: oklch(0.70 0.10 240);
+  /* Графики — оттенки серого */
+  --chart-1: oklch(0.95 0 0);
+  --chart-2: oklch(0.72 0 0);
+  --chart-3: oklch(0.58 0 0);
+  --chart-4: oklch(0.45 0 0);
+  --chart-5: oklch(0.35 0 0);
 
   /* Боковое меню */
-  --sidebar: oklch(0.205 0.005 270);
-  --sidebar-foreground: oklch(0.93 0.003 270);
-  --sidebar-primary: oklch(0.66 0.18 274);
-  --sidebar-primary-foreground: oklch(0.16 0.02 274);
-  --sidebar-accent: oklch(0.32 0.04 274);
-  --sidebar-accent-foreground: oklch(0.86 0.06 274);
+  --sidebar: oklch(0.185 0 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.95 0 0);
+  --sidebar-primary-foreground: oklch(0.18 0 0);
+  --sidebar-accent: oklch(0.30 0 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.66 0.18 274);
+  --sidebar-ring: oklch(0.70 0 0);
 }
 
 /* Маппинг токенов в утилиты Tailwind v4 (bg-card, text-muted-foreground, …). */

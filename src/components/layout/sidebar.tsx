@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogOut, PanelLeftClose, PanelLeftOpen, Target } from "lucide-react"
+import { LogOut, PanelLeftClose, PanelLeftOpen, Zap } from "lucide-react"
 
 import { signOut } from "@/server/actions/auth"
 import { cn } from "@/lib/utils"
@@ -54,8 +54,8 @@ function NavLink({
       href={item.href}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "group relative flex items-center rounded-lg text-sm transition-colors",
-        collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2",
+        "group relative flex items-center rounded-lg text-[15px] transition-colors",
+        collapsed ? "justify-center px-0 py-2.5" : "gap-3 px-3 py-2.5",
         active
           ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
           : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
@@ -64,7 +64,7 @@ function NavLink({
       {active && <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary" />}
       <Icon
         className={cn(
-          "size-4.5 shrink-0",
+          "size-5 shrink-0",
           active ? "text-primary" : "text-muted-foreground group-hover:text-sidebar-accent-foreground"
         )}
       />
@@ -83,7 +83,7 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
     <aside
       className={cn(
         "sticky top-0 hidden h-svh shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-[17rem]"
       )}
     >
       {/* Бренд + сворачивание */}
@@ -91,11 +91,10 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
         {!collapsed && (
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <div className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <Target className="size-4.5" />
+              <Zap className="size-4.5" />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold leading-tight tracking-tight">FinTask</div>
-              <div className="truncate text-[11px] leading-tight text-muted-foreground">Дисциплина · Контроль</div>
+              <div className="truncate text-base font-semibold leading-tight tracking-tight">Control</div>
             </div>
           </Link>
         )}
@@ -118,7 +117,7 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
         {NAV_GROUPS.map((group) => (
           <div key={group.label} className="space-y-0.5">
             {!collapsed && (
-              <div className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              <div className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
                 {group.label}
               </div>
             )}

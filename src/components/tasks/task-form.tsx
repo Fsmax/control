@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog"
 
 const field =
-  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+  "flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-1.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
 
 type ProjectOpt = { id: string; name: string }
 

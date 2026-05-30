@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FinTask",
+  title: "Control",
   description: "Дисциплина и контроль: задачи, фокус, деньги",
 };
 
