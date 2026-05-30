@@ -1,28 +1,30 @@
-// Edge Function: рассылает Web Push по задачам с наступившим remind_at.
-// Запускается по расписанию (pg_cron → pg_net), см. Finance.md раздел 4.9.
-// Секреты: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT.
-// SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY Supabase подставляет автоматически.
+import { NextResponse, type NextRequest } from "next/server"
+import webpush from "web-push"
 
-import webpush from "npm:web-push@3.6.7"
-import { createClient } from "jsr:@supabase/supabase-js@2"
+import { createAdminClient } from "@/utils/supabase/admin"
 
-const supabaseUrl = Deno.env.get("SUPABASE_URL")!
-const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-const vapidPublic = Deno.env.get("VAPID_PUBLIC_KEY")!
-const vapidPrivate = Deno.env.get("VAPID_PRIVATE_KEY")!
-const vapidSubject = Deno.env.get("VAPID_SUBJECT") ?? "mailto:fintask@example.com"
+// Рассылка Web Push по задачам с наступившим remind_at. Дёргается Vercel Cron
+// (см. vercel.json). Узел: Node.js runtime — web-push использует node:crypto.
+export const runtime = "nodejs"
+export const dynamic = "force-dynamic"
 
-webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate)
-
-Deno.serve(async (req) => {
-  // Защита эндпойнта: функция владеет service_role и рассылает push. Если задан
-  // CRON_SECRET — требуем его в заголовке Authorization (его же передаёт cron-job).
-  const cronSecret = Deno.env.get("CRON_SECRET")
+export async function GET(req: NextRequest) {
+  // Защита эндпойнта. Vercel Cron шлёт "Authorization: Bearer <CRON_SECRET>",
+  // если переменная CRON_SECRET задана в окружении проекта.
+  const cronSecret = process.env.CRON_SECRET
   if (cronSecret && req.headers.get("Authorization") !== `Bearer ${cronSecret}`) {
-    return new Response("Unauthorized", { status: 401 })
+    return new NextResponse("Unauthorized", { status: 401 })
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey)
+  const vapidPublic = process.env.VAPID_PUBLIC_KEY
+  const vapidPrivate = process.env.VAPID_PRIVATE_KEY
+  const vapidSubject = process.env.VAPID_SUBJECT ?? "mailto:control@example.com"
+  if (!vapidPublic || !vapidPrivate) {
+    return NextResponse.json({ error: "VAPID-ключи не заданы" }, { status: 500 })
+  }
+  webpush.setVapidDetails(vapidSubject, vapidPublic, vapidPrivate)
+
+  const supabase = createAdminClient()
   const nowIso = new Date().toISOString()
 
   const { data: due, error } = await supabase
@@ -34,10 +36,7 @@ Deno.serve(async (req) => {
     .neq("status", "DONE")
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { "content-type": "application/json" },
-    })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   let sent = 0
@@ -48,7 +47,7 @@ Deno.serve(async (req) => {
       .select("endpoint, p256dh, auth")
       .eq("user_id", task.user_id)
 
-    let delivered = false        // доставлено хотя бы на одну подписку
+    let delivered = false // доставлено хотя бы на одну подписку
     let transientFailure = false // временная ошибка (сеть/5xx) — есть смысл повторить
 
     for (const s of subs ?? []) {
@@ -80,7 +79,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return new Response(JSON.stringify({ sent, retried }), {
-    headers: { "content-type": "application/json" },
-  })
-})
+  return NextResponse.json({ sent, retried })
+}
