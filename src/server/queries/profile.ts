@@ -1,20 +1,9 @@
-import { createClient } from "@/utils/supabase/server"
 import type { Database } from "@/types/database.types"
+import { getCachedProfile } from "@/server/queries/session"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
 
+// Тонкая обёртка над кэш-версией: дедуплицируется с другими query-функциями в рендере.
 export async function getProfile(): Promise<ProfileRow | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) throw new Error("unauthorized")
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
-  return data
+  return getCachedProfile()
 }

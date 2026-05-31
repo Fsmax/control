@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { getSessionUser, getCachedProfile } from "@/server/queries/session"
 import { todayInTz, daysAgoInTz, addDaysYmd, splitMinutesByDay } from "@/lib/dates"
 import { computeStreak, STREAK_WINDOW_DAYS } from "@/lib/streak"
 
@@ -16,16 +17,10 @@ export type ProgressData = {
 
 export async function getProgressData(): Promise<ProgressData> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getSessionUser()
   if (!user) throw new Error("unauthorized")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone, day_goal, base_currency")
-    .eq("id", user.id)
-    .single()
+  const profile = await getCachedProfile()
 
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const dayGoal = profile?.day_goal ?? 3

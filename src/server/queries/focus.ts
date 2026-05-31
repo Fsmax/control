@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { getSessionUser, getCachedProfile } from "@/server/queries/session"
 import { todayInTz, daysAgoInTz, splitMinutesByDay } from "@/lib/dates"
 
 type ActiveSession = { id: string; started_at: string; taskTitle: string | null }
@@ -19,16 +20,10 @@ export type FocusData = {
 
 export async function getFocusData(): Promise<FocusData> {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getSessionUser()
   if (!user) throw new Error("unauthorized")
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone, focus_goal_min, base_currency")
-    .eq("id", user.id)
-    .single()
+  const profile = await getCachedProfile()
 
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const focusGoalMin = profile?.focus_goal_min ?? 120

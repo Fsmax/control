@@ -1,6 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz"
 
 import { createClient } from "@/utils/supabase/server"
+import { getCachedProfile } from "@/server/queries/session"
 import { todayInTz } from "@/lib/dates"
 import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
@@ -19,7 +20,7 @@ const OPEN_STAGES = new Set(["LEAD", "QUALIFIED", "PROPOSAL", "NEGOTIATION"])
 
 export async function getCrmSummary(): Promise<CrmSummary> {
   const supabase = await createClient()
-  const { data: profile } = await supabase.from("profiles").select("timezone").maybeSingle()
+  const profile = await getCachedProfile()
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const today = todayInTz(tz)
   const monthStart = `${today.slice(0, 7)}-01`
