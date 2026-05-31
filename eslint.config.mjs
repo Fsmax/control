@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Разовые node-скрипты (require) и service worker (не модуль).
+    "scripts/**",
+    "public/sw.js",
   ]),
 ]);
 
