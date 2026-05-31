@@ -151,12 +151,16 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
                 Настройки
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <form action={signOut}>
-                <DropdownMenuItem render={<button type="submit" />} variant="destructive" className="w-full">
-                  <LogOut className="size-4" />
-                  Выйти
-                </DropdownMenuItem>
-              </form>
+              <DropdownMenuItem
+                variant="destructive"
+                className="w-full"
+                onClick={() => {
+                  void signOut()
+                }}
+              >
+                <LogOut className="size-4" />
+                Выйти
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {!collapsed && <ThemeToggle />}
