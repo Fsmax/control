@@ -1,6 +1,6 @@
 // Control service worker: PWA-кэш статики + приём Web Push.
 
-const CACHE = "control-static-v1"
+const CACHE = "control-static-v2"
 
 // Кэшируем только безопасную статику (cache-first), HTML/данные не кэшируем —
 // чтобы не показывать устаревший контент за авторизацией.
@@ -38,37 +38,24 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(req.url)
   if (url.origin !== self.location.origin) return // не трогаем Supabase и сторонние
-  if (url.pathname.startsWith("/api/")) return // API — всегда сеть
 
-  // Статика: cache-first + фоновое обновление (stale-while-revalidate).
-  if (isStaticAsset(url)) {
-    event.respondWith(
-      caches.open(CACHE).then(async (cache) => {
-        const cached = await cache.match(req)
-        const network = fetch(req)
-          .then((res) => {
-            if (res && res.ok) cache.put(req, res.clone())
-            return res
-          })
-          .catch(() => cached)
-        return cached || network
-      })
-    )
-    return
-  }
+  // ВАЖНО: навигации и любые НЕ-статические запросы НЕ перехватываем —
+  // отдаём браузеру как есть (network). Это исключает поломку навигации SW.
+  if (!isStaticAsset(url)) return
 
-  // Навигация (HTML): network-first, при офлайне — последняя кэшированная версия, если есть.
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
+  // Только безопасная статика: cache-first + фоновое обновление (stale-while-revalidate).
+  event.respondWith(
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(req)
+      const network = fetch(req)
         .then((res) => {
-          const copy = res.clone()
-          caches.open(CACHE).then((cache) => cache.put(req, copy)).catch(() => {})
+          if (res && res.ok) cache.put(req, res.clone())
           return res
         })
-        .catch(() => caches.match(req))
-    )
-  }
+        .catch(() => cached)
+      return cached || network
+    })
+  )
 })
 
 // --- Web Push ---------------------------------------------------------------
