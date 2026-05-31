@@ -53,15 +53,18 @@ function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+// Заголовок-лейбл меню. Рендерим обычный <div>, НЕ MenuPrimitive.GroupLabel:
+// GroupLabel требует контекста <Menu.Group> и без него бросает
+// «MenuGroupContext is missing». У нас лейбл стоит standalone (заголовок-почта).
 function DropdownMenuLabel({
   className,
   inset,
   ...props
-}: MenuPrimitive.GroupLabel.Props & {
+}: React.ComponentProps<"div"> & {
   inset?: boolean
 }) {
   return (
-    <MenuPrimitive.GroupLabel
+    <div
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
