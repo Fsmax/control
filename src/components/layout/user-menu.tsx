@@ -1,6 +1,7 @@
 "use client"
 
-import { LogOut } from "lucide-react"
+import Link from "next/link"
+import { LogOut, Settings } from "lucide-react"
 
 import { signOut } from "@/server/actions/auth"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -27,6 +28,11 @@ export function UserMenu({ email }: { email: string }) {
         <DropdownMenuLabel className="truncate font-normal">
           {email}
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem render={<Link href="/settings" />} className="w-full">
+          <Settings className="size-4" />
+          Настройки
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={signOut}>
           <DropdownMenuItem

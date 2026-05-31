@@ -3,11 +3,11 @@
 import { useSyncExternalStore } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogOut, PanelLeftClose, PanelLeftOpen, Zap } from "lucide-react"
+import { LogOut, PanelLeftClose, PanelLeftOpen, Settings, Zap } from "lucide-react"
 
 import { signOut } from "@/server/actions/auth"
 import { cn } from "@/lib/utils"
-import { NAV_GROUPS, NAV_SETTINGS, isActive, type NavItem } from "@/components/layout/nav-items"
+import { NAV_GROUPS, isActive, type NavItem } from "@/components/layout/nav-items"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
@@ -128,14 +128,8 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
         ))}
       </nav>
 
-      {/* Низ: настройки + аккаунт */}
+      {/* Низ: аккаунт (настройки + выход в меню) */}
       <div className="space-y-1 border-t border-sidebar-border p-2">
-        <NavLink
-          item={NAV_SETTINGS}
-          active={isActive(pathname, NAV_SETTINGS.href)}
-          collapsed={collapsed}
-        />
-
         <div className={cn("flex items-center gap-2", collapsed ? "justify-center" : "px-1 pt-1")}>
           <DropdownMenu>
             <DropdownMenuTrigger className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left outline-none transition-colors hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-ring">
@@ -151,6 +145,11 @@ export function Sidebar({ email, currentPath }: { email: string; currentPath?: s
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="top" className="w-56">
               <DropdownMenuLabel className="truncate font-normal">{email}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem render={<Link href="/settings" />} className="w-full">
+                <Settings className="size-4" />
+                Настройки
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <form action={signOut}>
                 <DropdownMenuItem render={<button type="submit" />} variant="destructive" className="w-full">
