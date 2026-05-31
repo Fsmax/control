@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { getCachedProfile } from "@/server/queries/session"
 import { todayInTz } from "@/lib/dates"
 import type { Database } from "@/types/database.types"
 
@@ -8,7 +9,7 @@ export type InvoiceWithClient = InvoiceRow & { clientName: string | null; overdu
 
 export async function listInvoices(): Promise<InvoiceWithClient[]> {
   const supabase = await createClient()
-  const { data: profile } = await supabase.from("profiles").select("timezone").maybeSingle()
+  const profile = await getCachedProfile()
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const today = todayInTz(tz)
 
