@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import { getSessionUser, getCachedProfile } from "@/server/queries/session"
 import { todayInTz, daysAgoInTz } from "@/lib/dates"
 import { computeStreak, STREAK_WINDOW_DAYS } from "@/lib/streak"
@@ -28,15 +29,24 @@ export async function getToday(): Promise<TodayData> {
   const dayGoal = profile?.day_goal ?? 3
   const today = todayInTz(tz)
 
-  const [{ data: planned }, { data: overdue }, { data: counts }] = await Promise.all([
-    supabase.from("tasks").select("*").eq("scheduled_for", today).order("position"),
-    supabase
-      .from("tasks")
-      .select("*")
-      .lt("scheduled_for", today)
-      .neq("status", "DONE")
-      .order("scheduled_for"),
-    supabase.rpc("daily_done", { uid: user.id, tz, since: daysAgoInTz(tz, STREAK_WINDOW_DAYS) }),
+  const [planned, overdue, counts] = await Promise.all([
+    logged(
+      "getToday.planned",
+      supabase.from("tasks").select("*").eq("scheduled_for", today).order("position")
+    ),
+    logged(
+      "getToday.overdue",
+      supabase
+        .from("tasks")
+        .select("*")
+        .lt("scheduled_for", today)
+        .neq("status", "DONE")
+        .order("scheduled_for")
+    ),
+    logged(
+      "getToday.counts",
+      supabase.rpc("daily_done", { uid: user.id, tz, since: daysAgoInTz(tz, STREAK_WINDOW_DAYS) })
+    ),
   ])
 
   const dayCounts = (counts ?? []).map((c) => ({ day: c.day, done: Number(c.done) }))

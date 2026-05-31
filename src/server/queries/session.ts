@@ -1,6 +1,7 @@
 import { cache } from "react"
 
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import type { Database } from "@/types/database.types"
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
@@ -22,6 +23,5 @@ export const getCachedProfile = cache(async (): Promise<ProfileRow | null> => {
   const user = await getSessionUser()
   if (!user) return null
   const supabase = await createClient()
-  const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-  return data
+  return logged("getCachedProfile", supabase.from("profiles").select("*").eq("id", user.id).single())
 })

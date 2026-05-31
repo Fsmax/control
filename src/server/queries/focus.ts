@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import { getSessionUser, getCachedProfile } from "@/server/queries/session"
 import { todayInTz, daysAgoInTz, splitMinutesByDay } from "@/lib/dates"
 
@@ -31,34 +32,45 @@ export async function getFocusData(): Promise<FocusData> {
   const today = todayInTz(tz)
   const monthStart = `${today.slice(0, 7)}-01`
 
-  const [{ data: activeRow }, { data: sessions }, { data: todayWork }, { data: earnTasks }, { data: projects }] =
-    await Promise.all([
+  const [activeRow, sessions, todayWork, earnTasks, projects] = await Promise.all([
+    logged(
+      "getFocusData.active",
       supabase
         .from("focus_sessions")
         .select("id, started_at, tasks(title)")
         .is("ended_at", null)
         .order("started_at", { ascending: false })
         .limit(1)
-        .maybeSingle(),
+        .maybeSingle()
+    ),
+    logged(
+      "getFocusData.sessions",
       supabase
         .from("focus_sessions")
         .select("started_at, ended_at, project_id")
-        .gte("started_at", daysAgoInTz(tz, 7)),
+        .gte("started_at", daysAgoInTz(tz, 7))
+    ),
+    logged(
+      "getFocusData.todayWork",
       supabase
         .from("tasks")
         .select("id, title, status")
         .eq("area", "WORK")
         .eq("scheduled_for", today)
-        .order("position"),
+        .order("position")
+    ),
+    logged(
+      "getFocusData.earnTasks",
       supabase
         .from("tasks")
         .select("payout_amount, payout_currency")
         .eq("area", "WORK")
         .eq("status", "DONE")
         .not("payout_amount", "is", null)
-        .gte("completed_at", monthStart),
-      supabase.from("projects").select("id, name"),
-    ])
+        .gte("completed_at", monthStart)
+    ),
+    logged("getFocusData.projects", supabase.from("projects").select("id, name")),
+  ])
 
   const active: ActiveSession | null = activeRow
     ? {

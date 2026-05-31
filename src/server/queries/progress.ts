@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import { getSessionUser, getCachedProfile } from "@/server/queries/session"
 import { todayInTz, daysAgoInTz, addDaysYmd, splitMinutesByDay } from "@/lib/dates"
 import { computeStreak, STREAK_WINDOW_DAYS } from "@/lib/streak"
@@ -27,23 +28,31 @@ export async function getProgressData(): Promise<ProgressData> {
   const baseCurrency = profile?.base_currency ?? "UZS"
   const today = todayInTz(tz)
 
-  const [{ data: counts }, { data: sessions }, { data: earnTasks }, { data: assets }, { data: valuations }] =
-    await Promise.all([
-      supabase.rpc("daily_done", { uid: user.id, tz, since: daysAgoInTz(tz, STREAK_WINDOW_DAYS) }),
-      supabase
-        .from("focus_sessions")
-        .select("started_at, ended_at")
-        .gte("started_at", daysAgoInTz(tz, 14)),
+  const [counts, sessions, earnTasks, assets, valuations] = await Promise.all([
+    logged(
+      "getProgressData.counts",
+      supabase.rpc("daily_done", { uid: user.id, tz, since: daysAgoInTz(tz, STREAK_WINDOW_DAYS) })
+    ),
+    logged(
+      "getProgressData.sessions",
+      supabase.from("focus_sessions").select("started_at, ended_at").gte("started_at", daysAgoInTz(tz, 14))
+    ),
+    logged(
+      "getProgressData.earnTasks",
       supabase
         .from("tasks")
         .select("payout_amount, payout_currency")
         .eq("area", "WORK")
         .eq("status", "DONE")
         .not("payout_amount", "is", null)
-        .gte("completed_at", daysAgoInTz(tz, 183)),
-      supabase.from("assets").select("id, currency"),
-      supabase.from("asset_valuations").select("asset_id, value, as_of"),
-    ])
+        .gte("completed_at", daysAgoInTz(tz, 183))
+    ),
+    logged("getProgressData.assets", supabase.from("assets").select("id, currency")),
+    logged(
+      "getProgressData.valuations",
+      supabase.from("asset_valuations").select("asset_id, value, as_of")
+    ),
+  ])
 
   // серии и хитмап
   const doneMap = new Map((counts ?? []).map((c) => [c.day, Number(c.done)]))

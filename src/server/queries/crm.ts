@@ -1,6 +1,7 @@
 import { formatInTimeZone } from "date-fns-tz"
 
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import { getCachedProfile } from "@/server/queries/session"
 import { todayInTz } from "@/lib/dates"
 import { byCurrency, type CurrencyAmount } from "@/lib/money"
@@ -25,10 +26,13 @@ export async function getCrmSummary(): Promise<CrmSummary> {
   const today = todayInTz(tz)
   const monthStart = `${today.slice(0, 7)}-01`
 
-  const [{ data: deals }, { data: invoices }, { data: clients }] = await Promise.all([
-    supabase.from("deals").select("stage, amount, currency, won_at"),
-    supabase.from("invoices").select("status, amount, currency, due_date"),
-    supabase.from("clients").select("status"),
+  const [deals, invoices, clients] = await Promise.all([
+    logged("getCrmSummary.deals", supabase.from("deals").select("stage, amount, currency, won_at")),
+    logged(
+      "getCrmSummary.invoices",
+      supabase.from("invoices").select("status, amount, currency, due_date")
+    ),
+    logged("getCrmSummary.clients", supabase.from("clients").select("status")),
   ])
 
   const pipelinePairs: [string, number][] = []
@@ -80,13 +84,16 @@ export type RecentActivity = {
 
 export async function getRecentActivities(limit = 6): Promise<RecentActivity[]> {
   const supabase = await createClient()
-  const [{ data: acts }, { data: clients }] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("id, type, subject, occurred_at, client_id")
-      .order("occurred_at", { ascending: false })
-      .limit(limit),
-    supabase.from("clients").select("id, name"),
+  const [acts, clients] = await Promise.all([
+    logged(
+      "getRecentActivities.activities",
+      supabase
+        .from("activities")
+        .select("id, type, subject, occurred_at, client_id")
+        .order("occurred_at", { ascending: false })
+        .limit(limit)
+    ),
+    logged("getRecentActivities.clients", supabase.from("clients").select("id, name")),
   ])
   const nameById = new Map((clients ?? []).map((c) => [c.id, c.name]))
   return (acts ?? []).map((a) => ({

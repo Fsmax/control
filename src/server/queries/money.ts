@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import type { Database } from "@/types/database.types"
 import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
@@ -19,9 +20,12 @@ export type MoneySummary = {
 
 export async function listDebts(): Promise<DebtWithOutstanding[]> {
   const supabase = await createClient()
-  const [{ data: debts }, { data: payments }] = await Promise.all([
-    supabase.from("debts").select("*").order("created_at", { ascending: false }),
-    supabase.from("debt_payments").select("debt_id, amount"),
+  const [debts, payments] = await Promise.all([
+    logged(
+      "listDebts.debts",
+      supabase.from("debts").select("*").order("created_at", { ascending: false })
+    ),
+    logged("listDebts.payments", supabase.from("debt_payments").select("debt_id, amount")),
   ])
   const paid = new Map<string, number>()
   for (const p of payments ?? []) {
@@ -35,19 +39,19 @@ export async function listDebts(): Promise<DebtWithOutstanding[]> {
 
 export async function listAssets(): Promise<AssetRow[]> {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from("assets")
-    .select("*")
-    .order("created_at", { ascending: false })
+  const data = await logged(
+    "listAssets",
+    supabase.from("assets").select("*").order("created_at", { ascending: false })
+  )
   return data ?? []
 }
 
 export async function listRecurring(): Promise<RecurringRow[]> {
   const supabase = await createClient()
-  const { data } = await supabase
-    .from("recurring")
-    .select("*")
-    .order("next_date", { ascending: true })
+  const data = await logged(
+    "listRecurring",
+    supabase.from("recurring").select("*").order("next_date", { ascending: true })
+  )
   return data ?? []
 }
 

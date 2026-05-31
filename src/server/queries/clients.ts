@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server"
+import { logged } from "@/server/queries/logged"
 import type { Database } from "@/types/database.types"
 import { byCurrency, type CurrencyAmount } from "@/lib/money"
 
@@ -21,10 +22,13 @@ export type ClientWithStats = ClientRow & {
 
 export async function listClients(): Promise<ClientWithStats[]> {
   const supabase = await createClient()
-  const [{ data: clients }, { data: deals }, { data: acts }] = await Promise.all([
-    supabase.from("clients").select("*").order("created_at", { ascending: false }),
-    supabase.from("deals").select("client_id, stage, amount, currency"),
-    supabase.from("activities").select("client_id, occurred_at"),
+  const [clients, deals, acts] = await Promise.all([
+    logged(
+      "listClients.clients",
+      supabase.from("clients").select("*").order("created_at", { ascending: false })
+    ),
+    logged("listClients.deals", supabase.from("deals").select("client_id, stage, amount, currency")),
+    logged("listClients.activities", supabase.from("activities").select("client_id, occurred_at")),
   ])
 
   const openCount = new Map<string, number>()
@@ -62,17 +66,34 @@ export type ClientDetail = {
 
 export async function getClient(id: string): Promise<ClientDetail | null> {
   const supabase = await createClient()
-  const { data: client } = await supabase.from("clients").select("*").eq("id", id).maybeSingle()
+  const client = await logged(
+    "getClient.client",
+    supabase.from("clients").select("*").eq("id", id).maybeSingle()
+  )
   if (!client) return null
 
-  const [{ data: contacts }, { data: deals }, { data: activities }, { data: invoices }, { data: projects }] =
-    await Promise.all([
-      supabase.from("contacts").select("*").eq("client_id", id).order("created_at"),
-      supabase.from("deals").select("*").eq("client_id", id).order("created_at", { ascending: false }),
-      supabase.from("activities").select("*").eq("client_id", id).order("occurred_at", { ascending: false }),
-      supabase.from("invoices").select("*").eq("client_id", id).order("issue_date", { ascending: false }),
-      supabase.from("projects").select("id, name, area, status").eq("client_id", id),
-    ])
+  const [contacts, deals, activities, invoices, projects] = await Promise.all([
+    logged(
+      "getClient.contacts",
+      supabase.from("contacts").select("*").eq("client_id", id).order("created_at")
+    ),
+    logged(
+      "getClient.deals",
+      supabase.from("deals").select("*").eq("client_id", id).order("created_at", { ascending: false })
+    ),
+    logged(
+      "getClient.activities",
+      supabase.from("activities").select("*").eq("client_id", id).order("occurred_at", { ascending: false })
+    ),
+    logged(
+      "getClient.invoices",
+      supabase.from("invoices").select("*").eq("client_id", id).order("issue_date", { ascending: false })
+    ),
+    logged(
+      "getClient.projects",
+      supabase.from("projects").select("id, name, area, status").eq("client_id", id)
+    ),
+  ])
 
   return {
     client,

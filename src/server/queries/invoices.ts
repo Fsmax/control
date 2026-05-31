@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/server"
 import { getCachedProfile } from "@/server/queries/session"
+import { logged } from "@/server/queries/logged"
 import { todayInTz } from "@/lib/dates"
 import type { Database } from "@/types/database.types"
 
@@ -13,9 +14,12 @@ export async function listInvoices(): Promise<InvoiceWithClient[]> {
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const today = todayInTz(tz)
 
-  const [{ data: invoices }, { data: clients }] = await Promise.all([
-    supabase.from("invoices").select("*").order("issue_date", { ascending: false }),
-    supabase.from("clients").select("id, name"),
+  const [invoices, clients] = await Promise.all([
+    logged(
+      "listInvoices.invoices",
+      supabase.from("invoices").select("*").order("issue_date", { ascending: false })
+    ),
+    logged("listInvoices.clients", supabase.from("clients").select("id, name")),
   ])
   const nameById = new Map((clients ?? []).map((c) => [c.id, c.name]))
 
