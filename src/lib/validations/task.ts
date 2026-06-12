@@ -18,6 +18,7 @@ export const taskCreateSchema = z.object({
   payout_amount: z.number().positive().nullable().optional(),
   payout_currency: z.string().trim().max(8).nullable().optional(),
   project_id: z.string().uuid().nullable().optional(),
+  stage: z.string().trim().max(80).nullable().optional(),
 })
 
 export type TaskCreateInput = z.input<typeof taskCreateSchema>

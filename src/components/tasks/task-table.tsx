@@ -1,12 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import {
+  Banknote,
   CalendarClock,
   CalendarPlus,
   CheckCircle2,
   Circle,
+  ListChecks,
   Play,
+  SquarePen,
   Trash2,
   Users,
 } from "lucide-react"
@@ -16,6 +19,8 @@ import { startFocus } from "@/server/actions/focus"
 import { addDaysYmd } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import type { TaskCardData } from "@/components/today/task-card"
+import { TaskDetails } from "@/components/tasks/task-details"
+import { PayoutDialog, type AssetOpt } from "@/components/tasks/payout-dialog"
 import {
   Table,
   TableBody,
@@ -25,7 +30,15 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-type Task = TaskCardData & { project_id: string | null }
+type Task = TaskCardData & {
+  project_id: string | null
+  position?: number
+  stage?: string | null
+  payout_amount?: number | null
+  payout_currency?: string | null
+  checklistTotal?: number
+  checklistDone?: number
+}
 type ProjectOpt = { id: string; name: string }
 type AreaFilter = "ALL" | "WORK" | "PERSONAL"
 type StatusFilter = "ACTIVE" | "ALL" | "DONE"
@@ -36,6 +49,8 @@ const PRIORITY: Record<Task["priority"], { label: string; dot: string; border: s
   LOW: { label: "Низкий", dot: "bg-muted-foreground/40", border: "border-l-transparent" },
 }
 const PRIORITY_RANK: Record<Task["priority"], number> = { HIGH: 0, MEDIUM: 1, LOW: 2 }
+
+const COLS = 8
 
 const MONTHS_SHORT = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
 function shortDate(ymd: string): string {
@@ -73,6 +88,12 @@ function Segmented<T extends string>({
   )
 }
 
+const iconButtonClass = (danger?: boolean) =>
+  cn(
+    "grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent",
+    danger ? "hover:bg-destructive/10 hover:text-destructive" : "hover:text-foreground"
+  )
+
 function IconButton({
   title,
   onClick,
@@ -90,10 +111,7 @@ function IconButton({
       title={title}
       aria-label={title}
       onClick={onClick}
-      className={cn(
-        "grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent",
-        danger ? "hover:bg-destructive/10 hover:text-destructive" : "hover:text-foreground"
-      )}
+      className={iconButtonClass(danger)}
     >
       {children}
     </button>
@@ -104,10 +122,12 @@ function Row({
   task,
   projectName,
   today,
+  assets,
 }: {
   task: Task
   projectName?: string
   today: string
+  assets?: AssetOpt[]
 }) {
   const done = task.status === "DONE"
   const p = PRIORITY[task.priority]
@@ -118,6 +138,8 @@ function Row({
 
   const schedOverdue = !!task.scheduled_for && task.scheduled_for < today && !done
   const dueOverdue = !!task.due_date && task.due_date < today && !done
+  const hasChecklist = (task.checklistTotal ?? 0) > 0
+  const canPostPayout = !!assets && done && !!task.payout_amount && Number(task.payout_amount) > 0
 
   return (
     <TableRow className={cn("group", done && "opacity-60")}>
@@ -142,6 +164,12 @@ function Row({
           <span className={cn("truncate font-medium", done && "text-muted-foreground line-through")}>
             {task.title}
           </span>
+          {hasChecklist && (
+            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] tabular-nums text-muted-foreground">
+              <ListChecks className="size-3" />
+              {task.checklistDone}/{task.checklistTotal}
+            </span>
+          )}
         </div>
       </TableCell>
 
@@ -190,6 +218,30 @@ function Row({
 
       <TableCell>
         <div className="flex items-center justify-end gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
+          {canPostPayout && (
+            <PayoutDialog
+              task={{
+                id: task.id,
+                title: task.title,
+                payout_amount: Number(task.payout_amount),
+                payout_currency: task.payout_currency ?? null,
+              }}
+              assets={assets!}
+              trigger={
+                <button type="button" title="Зачислить выплату в актив" className={iconButtonClass()}>
+                  <Banknote className="size-3.5" />
+                </button>
+              }
+            />
+          )}
+          <TaskDetails
+            task={{ id: task.id, title: task.title, stage: task.stage ?? null }}
+            trigger={
+              <button type="button" title="Этап, чек-лист и вложения" className={iconButtonClass()}>
+                <SquarePen className="size-3.5" />
+              </button>
+            }
+          />
           <IconButton title="В фокус" onClick={() => void startFocus(task.id, null)}>
             <Play className="size-3.5" />
           </IconButton>
@@ -209,10 +261,14 @@ export function TaskTable({
   tasks,
   projects,
   today,
+  assets,
+  groupByStage = false,
 }: {
   tasks: Task[]
   projects: ProjectOpt[]
   today: string
+  assets?: AssetOpt[]
+  groupByStage?: boolean
 }) {
   const [area, setArea] = useState<AreaFilter>("ALL")
   const [status, setStatus] = useState<StatusFilter>("ACTIVE")
@@ -224,11 +280,29 @@ export function TaskTable({
       status === "ALL" ? true : status === "DONE" ? t.status === "DONE" : t.status !== "DONE"
     )
     .sort((a, b) => {
+      if (groupByStage) {
+        // Порядок выполнения: position (сделанные остаются на месте — виден маршрут).
+        return (a.position ?? 0) - (b.position ?? 0)
+      }
       const ad = a.status === "DONE" ? 1 : 0
       const bd = b.status === "DONE" ? 1 : 0
       if (ad !== bd) return ad - bd
       return PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority]
     })
+
+  // Этапы в порядке первого вхождения (= min position), «без этапа» — в конец.
+  const groups = (() => {
+    if (!groupByStage) return null
+    const m = new Map<string, Task[]>()
+    for (const t of shown) {
+      const key = t.stage?.trim() || ""
+      const list = m.get(key)
+      if (list) list.push(t)
+      else m.set(key, [t])
+    }
+    const entries = [...m.entries()]
+    return [...entries.filter(([k]) => k !== ""), ...entries.filter(([k]) => k === "")]
+  })()
 
   return (
     <div className="space-y-3">
@@ -271,10 +345,38 @@ export function TaskTable({
           <TableBody>
             {shown.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={COLS} className="h-24 text-center text-muted-foreground">
                   Задач нет.
                 </TableCell>
               </TableRow>
+            ) : groups ? (
+              groups.map(([stage, items]) => {
+                const doneCount = items.filter((t) => t.status === "DONE").length
+                return (
+                  <Fragment key={stage || "__none__"}>
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableCell
+                        colSpan={COLS}
+                        className="py-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+                      >
+                        {stage || "Без этапа"}
+                        <span className="ml-2 font-normal normal-case tabular-nums">
+                          {doneCount} из {items.length}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                    {items.map((t) => (
+                      <Row
+                        key={t.id}
+                        task={t}
+                        projectName={t.project_id ? names.get(t.project_id) : undefined}
+                        today={today}
+                        assets={assets}
+                      />
+                    ))}
+                  </Fragment>
+                )
+              })
             ) : (
               shown.map((t) => (
                 <Row
@@ -282,6 +384,7 @@ export function TaskTable({
                   task={t}
                   projectName={t.project_id ? names.get(t.project_id) : undefined}
                   today={today}
+                  assets={assets}
                 />
               ))
             )}

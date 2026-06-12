@@ -24,8 +24,13 @@ type Task = {
   is_meeting: boolean
   start_at: string | null
   end_at: string | null
+  position?: number
+  stage?: string | null
+  payout_amount?: number | null
+  payout_currency?: string | null
 }
 type ProjectOpt = { id: string; name: string }
+type AssetOpt = { id: string; name: string; currency: string }
 
 function Kpi({
   icon: Icon,
@@ -73,12 +78,14 @@ export function TaskViews({
   today,
   tz,
   baseCurrency,
+  assets,
 }: {
   tasks: Task[]
   projects: ProjectOpt[]
   today: string
   tz: string
   baseCurrency: string
+  assets?: AssetOpt[]
 }) {
   const [view, setView] = useState<View>("table")
 
@@ -122,7 +129,7 @@ export function TaskViews({
         <TaskForm projects={projects} tz={tz} baseCurrency={baseCurrency} />
       </div>
 
-      {view === "table" && <TaskTable tasks={tasks} projects={projects} today={today} />}
+      {view === "table" && <TaskTable tasks={tasks} projects={projects} today={today} assets={assets} />}
       {view === "kanban" && <KanbanBoard tasks={tasks} />}
       {view === "timeline" && <TimelineView tasks={tasks} today={today} tz={tz} />}
     </div>

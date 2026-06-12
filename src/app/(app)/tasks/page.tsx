@@ -1,16 +1,19 @@
 import { listTasks } from "@/server/queries/tasks"
 import { listProjects } from "@/server/queries/projects"
 import { getProfile } from "@/server/queries/profile"
+import { listAssets } from "@/server/queries/money"
 import { todayInTz } from "@/lib/dates"
 import { PageHeader } from "@/components/ui/page-header"
 import { TaskViews } from "@/components/tasks/task-views"
 
 export default async function TasksPage() {
-  const [tasks, projects, profile] = await Promise.all([
+  const [tasks, projects, profile, assets] = await Promise.all([
     listTasks(),
     listProjects(),
     getProfile(),
+    listAssets(),
   ])
+  const assetOpts = assets.map((a) => ({ id: a.id, name: a.name, currency: a.currency }))
   const tz = profile?.timezone ?? "Asia/Tashkent"
   const baseCurrency = profile?.base_currency ?? "UZS"
   const today = todayInTz(tz)
@@ -25,6 +28,7 @@ export default async function TasksPage() {
         today={today}
         tz={tz}
         baseCurrency={baseCurrency}
+        assets={assetOpts}
       />
     </div>
   )

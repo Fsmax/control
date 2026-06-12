@@ -2,11 +2,13 @@ import Link from "next/link"
 import { Wallet, Scale, ArrowDownLeft, ArrowUpRight } from "lucide-react"
 
 import { getMoneySummary } from "@/server/queries/money"
-import { listDebts, listAssets, listRecurring } from "@/server/queries/money"
+import { listDebts, listAssets, listRecurring, listFxRates } from "@/server/queries/money"
 import { listInvoices } from "@/server/queries/invoices"
 import { getProgressData } from "@/server/queries/progress"
 import { getProfile } from "@/server/queries/profile"
+import { convertToBase } from "@/lib/fx"
 import { formatMoney, formatMoneyShort, primaryAmount } from "@/lib/utils"
+import { FxRatesCard } from "@/components/money/fx-rates-card"
 import { PageHeader } from "@/components/ui/page-header"
 import { StatCard } from "@/components/analytics/stat-card"
 import { ChartCard } from "@/components/analytics/chart-card"
@@ -40,7 +42,7 @@ const PERIOD: Record<string, string> = {
 }
 
 export default async function MoneyPage() {
-  const [s, debts, assets, recurring, invoices, progress, profile] = await Promise.all([
+  const [s, debts, assets, recurring, invoices, progress, profile, fxRates] = await Promise.all([
     getMoneySummary(),
     listDebts(),
     listAssets(),
@@ -48,15 +50,20 @@ export default async function MoneyPage() {
     listInvoices(),
     getProgressData(),
     getProfile(),
+    listFxRates(),
   ])
   const base = profile?.base_currency ?? "UZS"
   const unpaidInvoices = invoices.filter((i) => i.status === "SENT" || i.status === "OVERDUE")
 
   const capital = primaryAmount(s.capital, base)
-  const net = primaryAmount(s.net, base)
   const owed = primaryAmount(s.owedToMe, base)
   const iOwe = primaryAmount(s.iOwe, base)
   const openDebts = debts.filter((d) => d.outstanding > 0.0001)
+
+  // «Чистыми» — всё в базовой валюте по курсам; валюты без курса показываем отдельно.
+  const rateMap = Object.fromEntries(fxRates.map((r) => [r.currency, Number(r.rate)]))
+  const netBase = convertToBase(s.net, base, rateMap)
+  const rates = fxRates.map((r) => ({ currency: r.currency, rate: Number(r.rate), as_of: r.as_of }))
 
   return (
     <div className="space-y-6">
@@ -65,6 +72,9 @@ export default async function MoneyPage() {
         description="Капитал, долги и регулярные платежи под контролем"
         actions={
           <>
+            <Button size="sm" variant="outline" render={<Link href="/money/transactions" />}>
+              Транзакции
+            </Button>
             <Button size="sm" variant="outline" render={<Link href="/money/debts" />}>
               Долги
             </Button>
@@ -88,11 +98,11 @@ export default async function MoneyPage() {
         />
         <StatCard
           label="Чистыми"
-          value={formatMoneyShort(net.amount, net.currency)}
-          hint={net.rest > 0 ? `+${net.rest}` : undefined}
-          sub="активы + дебиторка − долги"
+          value={formatMoneyShort(netBase.total, base)}
+          hint={netBase.missing.length > 0 ? `нет курса: ${netBase.missing.join(", ")}` : undefined}
+          sub="активы + дебиторка − долги, в базовой валюте"
           icon={Scale}
-          accent={net.amount >= 0 ? "success" : "danger"}
+          accent={netBase.total >= 0 ? "success" : "danger"}
         />
         <StatCard
           label="Мне должны"
@@ -112,17 +122,22 @@ export default async function MoneyPage() {
         />
       </div>
 
-      <ChartCard title="Динамика капитала" description={`база — ${base}`}>
-        {progress.capital.length > 1 ? (
-          <AreaTrend data={progress.capital} format={(v) => formatMoneyShort(v, base)} />
-        ) : (
-          <EmptyState
-            icon={Wallet}
-            title="Пока нет истории"
-            description="Обновляйте стоимость активов — здесь появится кривая капитала."
-          />
-        )}
-      </ChartCard>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <ChartCard title="Динамика капитала" description={`база — ${base}`}>
+            {progress.capital.length > 1 ? (
+              <AreaTrend data={progress.capital} format={(v) => formatMoneyShort(v, base)} />
+            ) : (
+              <EmptyState
+                icon={Wallet}
+                title="Пока нет истории"
+                description="Обновляйте стоимость активов — здесь появится кривая капитала."
+              />
+            )}
+          </ChartCard>
+        </div>
+        <FxRatesCard rates={rates} base={base} />
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
         {/* Долги */}
