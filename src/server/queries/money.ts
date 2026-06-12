@@ -6,6 +6,7 @@ import { byCurrency, type CurrencyAmount } from "@/lib/money"
 type DebtRow = Database["public"]["Tables"]["debts"]["Row"]
 type AssetRow = Database["public"]["Tables"]["assets"]["Row"]
 type RecurringRow = Database["public"]["Tables"]["recurring"]["Row"]
+type FxRateRow = Database["public"]["Tables"]["fx_rates"]["Row"]
 
 export type DebtWithOutstanding = DebtRow & { outstanding: number }
 export type { CurrencyAmount }
@@ -42,6 +43,15 @@ export async function listAssets(): Promise<AssetRow[]> {
   const data = await logged(
     "listAssets",
     supabase.from("assets").select("*").order("created_at", { ascending: false })
+  )
+  return data ?? []
+}
+
+export async function listFxRates(): Promise<FxRateRow[]> {
+  const supabase = await createClient()
+  const data = await logged(
+    "listFxRates",
+    supabase.from("fx_rates").select("*").order("currency", { ascending: true })
   )
   return data ?? []
 }

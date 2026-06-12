@@ -8,6 +8,7 @@ import {
   FolderKanban,
   Timer,
   Wallet,
+  ArrowLeftRight,
   LineChart,
   Settings,
   type LucideIcon,
@@ -27,6 +28,7 @@ const projects: NavItem = { href: "/projects", label: "Проекты", icon: Fo
 const focus: NavItem = { href: "/focus", label: "Фокус", icon: Timer }
 
 const money: NavItem = { href: "/money", label: "Деньги", icon: Wallet }
+const transactions: NavItem = { href: "/money/transactions", label: "Транзакции", icon: ArrowLeftRight }
 const progress: NavItem = { href: "/progress", label: "Прогресс", icon: LineChart }
 
 export const NAV_SETTINGS: NavItem = { href: "/settings", label: "Настройки", icon: Settings }
@@ -36,7 +38,7 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   { label: "Обзор", items: [dashboard, today] },
   { label: "CRM", items: [clients, deals, invoices] },
   { label: "Работа", items: [tasks, projects, focus] },
-  { label: "Финансы", items: [money] },
+  { label: "Финансы", items: [money, transactions] },
   { label: "Аналитика", items: [progress] },
 ]
 
@@ -51,6 +53,7 @@ export const NAV: NavItem[] = [
   projects,
   focus,
   money,
+  transactions,
   progress,
   NAV_SETTINGS,
 ]

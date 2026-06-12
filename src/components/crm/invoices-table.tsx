@@ -1,45 +1,47 @@
 "use client"
 
-import { useTransition } from "react"
 import { FileText } from "lucide-react"
 
 import type { InvoiceWithClient } from "@/server/queries/invoices"
-import { setInvoiceStatus } from "@/server/actions/invoices"
 import { formatMoney } from "@/lib/utils"
 import { DataTable, type Column } from "@/components/ui/data-table"
 import { StatusBadge, DomainBadge, INVOICE_STATUS } from "@/components/ui/status-badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { Button } from "@/components/ui/button"
 import { InvoiceForm } from "@/components/crm/invoice-form"
+import { MarkPaidDialog } from "@/components/crm/mark-paid-dialog"
 
 type Opt = { id: string; name: string }
 type DealOpt = { id: string; title: string }
+type AssetOpt = { id: string; name: string; currency: string }
 
 function InvoiceActions({
   invoice,
   clients,
   deals,
+  assets,
   baseCurrency,
 }: {
   invoice: InvoiceWithClient
   clients: Opt[]
   deals: DealOpt[]
+  assets: AssetOpt[]
   baseCurrency: string
 }) {
-  const [pending, start] = useTransition()
   const canPay = invoice.status !== "PAID" && invoice.status !== "CANCELLED"
 
   return (
     <div className="flex items-center justify-end gap-1">
       {canPay && (
-        <Button
-          size="xs"
-          variant="outline"
-          disabled={pending}
-          onClick={() => start(async () => void (await setInvoiceStatus(invoice.id, "PAID")))}
-        >
-          Оплачен
-        </Button>
+        <MarkPaidDialog
+          invoice={{
+            id: invoice.id,
+            number: invoice.number,
+            amount: Number(invoice.amount),
+            currency: invoice.currency,
+          }}
+          assets={assets}
+        />
       )}
       <InvoiceForm
         clients={clients}
@@ -71,11 +73,13 @@ export function InvoicesTable({
   invoices,
   clients,
   deals,
+  assets = [],
   baseCurrency,
 }: {
   invoices: InvoiceWithClient[]
   clients: Opt[]
   deals: DealOpt[]
+  assets?: AssetOpt[]
   baseCurrency: string
 }) {
   const columns: Column<InvoiceWithClient>[] = [
@@ -129,7 +133,9 @@ export function InvoicesTable({
       key: "actions",
       header: "",
       align: "right",
-      cell: (i) => <InvoiceActions invoice={i} clients={clients} deals={deals} baseCurrency={baseCurrency} />,
+      cell: (i) => (
+        <InvoiceActions invoice={i} clients={clients} deals={deals} assets={assets} baseCurrency={baseCurrency} />
+      ),
     },
   ]
 

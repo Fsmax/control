@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       activities: {
@@ -160,6 +135,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      attachments: {
+        Row: {
+          created_at: string
+          id: string
+          mime: string | null
+          name: string
+          path: string
+          size: number | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mime?: string | null
+          name: string
+          path: string
+          size?: number | null
+          task_id: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mime?: string | null
+          name?: string
+          path?: string
+          size?: number | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -443,6 +459,30 @@ export type Database = {
           },
         ]
       }
+      fx_rates: {
+        Row: {
+          as_of: string
+          currency: string
+          rate: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          as_of?: string
+          currency: string
+          rate: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          as_of?: string
+          currency?: string
+          rate?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           amount: number
@@ -668,6 +708,44 @@ export type Database = {
         }
         Relationships: []
       }
+      task_checklist_items: {
+        Row: {
+          created_at: string
+          done: boolean
+          id: string
+          position: number
+          task_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          position?: number
+          task_id: string
+          title: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          done?: boolean
+          id?: string
+          position?: number
+          task_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_checklist_items_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           area: Database["public"]["Enums"]["area"]
@@ -686,6 +764,7 @@ export type Database = {
           remind_at: string | null
           reminded_at: string | null
           scheduled_for: string | null
+          stage: string | null
           start_at: string | null
           status: Database["public"]["Enums"]["task_status"]
           title: string
@@ -709,6 +788,7 @@ export type Database = {
           remind_at?: string | null
           reminded_at?: string | null
           scheduled_for?: string | null
+          stage?: string | null
           start_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title: string
@@ -732,6 +812,7 @@ export type Database = {
           remind_at?: string | null
           reminded_at?: string | null
           scheduled_for?: string | null
+          stage?: string | null
           start_at?: string | null
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
@@ -747,6 +828,117 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          asset_id: string
+          category_id: string | null
+          created_at: string
+          currency: string
+          date: string
+          id: string
+          invoice_id: string | null
+          kind: Database["public"]["Enums"]["tx_kind"]
+          note: string | null
+          task_id: string | null
+          to_asset_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asset_id: string
+          category_id?: string | null
+          created_at?: string
+          currency: string
+          date?: string
+          id?: string
+          invoice_id?: string | null
+          kind: Database["public"]["Enums"]["tx_kind"]
+          note?: string | null
+          task_id?: string | null
+          to_asset_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          asset_id?: string
+          category_id?: string | null
+          created_at?: string
+          currency?: string
+          date?: string
+          id?: string
+          invoice_id?: string | null
+          kind?: Database["public"]["Enums"]["tx_kind"]
+          note?: string | null
+          task_id?: string | null
+          to_asset_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "tx_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_to_asset_id_fkey"
+            columns: ["to_asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tx_categories: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["tx_kind"]
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["tx_kind"]
+          name: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["tx_kind"]
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -794,6 +986,7 @@ export type Database = {
       recurring_kind: "INCOME" | "EXPENSE"
       recurring_period: "WEEKLY" | "MONTHLY" | "YEARLY"
       task_status: "TODO" | "IN_PROGRESS" | "DONE"
+      tx_kind: "INCOME" | "EXPENSE" | "TRANSFER"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,9 +1112,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       activity_type: ["CALL", "MEETING", "EMAIL", "NOTE"],
@@ -953,6 +1143,7 @@ export const Constants = {
       recurring_kind: ["INCOME", "EXPENSE"],
       recurring_period: ["WEEKLY", "MONTHLY", "YEARLY"],
       task_status: ["TODO", "IN_PROGRESS", "DONE"],
+      tx_kind: ["INCOME", "EXPENSE", "TRANSFER"],
     },
   },
 } as const

@@ -15,6 +15,8 @@ type Result = { success: boolean; error?: string }
 function revalidate() {
   revalidatePath("/")
   revalidatePath("/tasks")
+  revalidatePath("/projects")
+  revalidatePath("/projects/[id]", "page")
 }
 
 export async function createTask(input: TaskCreateInput): Promise<Result> {

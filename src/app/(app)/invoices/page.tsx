@@ -5,6 +5,7 @@ import { listClients } from "@/server/queries/clients"
 import { listDeals } from "@/server/queries/deals"
 import { getCrmSummary } from "@/server/queries/crm"
 import { getProfile } from "@/server/queries/profile"
+import { listAssets } from "@/server/queries/money"
 import { formatMoneyShort, primaryAmount } from "@/lib/utils"
 import { PageHeader } from "@/components/ui/page-header"
 import { StatCard } from "@/components/analytics/stat-card"
@@ -16,14 +17,16 @@ export default async function InvoicesPage({
 }: {
   searchParams: Promise<{ new?: string }>
 }) {
-  const [invoices, clients, deals, crm, profile, sp] = await Promise.all([
+  const [invoices, clients, deals, crm, profile, assets, sp] = await Promise.all([
     listInvoices(),
     listClients(),
     listDeals(),
     getCrmSummary(),
     getProfile(),
+    listAssets(),
     searchParams,
   ])
+  const assetOpts = assets.map((a) => ({ id: a.id, name: a.name, currency: a.currency }))
   const base = profile?.base_currency ?? "UZS"
   const clientOpts = clients.map((c) => ({ id: c.id, name: c.name }))
   const dealOpts = deals.map((d) => ({ id: d.id, title: d.title }))
@@ -56,7 +59,13 @@ export default async function InvoicesPage({
         <StatCard label="Оплачено" value={paid} sub="закрытых счетов" icon={CheckCircle2} accent="success" />
       </div>
 
-      <InvoicesTable invoices={invoices} clients={clientOpts} deals={dealOpts} baseCurrency={base} />
+      <InvoicesTable
+        invoices={invoices}
+        clients={clientOpts}
+        deals={dealOpts}
+        assets={assetOpts}
+        baseCurrency={base}
+      />
     </div>
   )
 }

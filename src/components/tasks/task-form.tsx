@@ -32,11 +32,13 @@ export function TaskForm({
   tz,
   baseCurrency,
   defaultProjectId,
+  stages,
 }: {
   projects: ProjectOpt[]
   tz: string
   baseCurrency: string
   defaultProjectId?: string
+  stages?: string[]
 }) {
   const [open, setOpen] = useState(false)
   const [pending, start] = useTransition()
@@ -46,6 +48,7 @@ export function TaskForm({
   const [area, setArea] = useState<"WORK" | "PERSONAL">("PERSONAL")
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM")
   const [projectId, setProjectId] = useState(defaultProjectId ?? "")
+  const [stage, setStage] = useState("")
   const [scheduledFor, setScheduledFor] = useState("")
   const [dueDate, setDueDate] = useState("")
   const [startAt, setStartAt] = useState("")
@@ -61,6 +64,7 @@ export function TaskForm({
     setArea("PERSONAL")
     setPriority("MEDIUM")
     setProjectId(defaultProjectId ?? "")
+    setStage("")
     setScheduledFor("")
     setDueDate("")
     setStartAt("")
@@ -82,6 +86,7 @@ export function TaskForm({
         area,
         priority,
         project_id: projectId || null,
+        stage: stage.trim() || null,
         scheduled_for: scheduledFor || null,
         due_date: dueDate || null,
         start_at: toIso(startAt, tz),
@@ -166,6 +171,25 @@ export function TaskForm({
               ))}
             </select>
           </label>
+          {projectId && (
+            <label className="block space-y-1 text-xs text-muted-foreground">
+              Этап (для группировки в проекте)
+              <input
+                className={field}
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
+                placeholder="Например: 1. Системы"
+                list="task-form-stages"
+              />
+              {stages && stages.length > 0 && (
+                <datalist id="task-form-stages">
+                  {stages.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              )}
+            </label>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <label className="block space-y-1 text-xs text-muted-foreground">
               На день
