@@ -113,6 +113,24 @@ export async function markInvoicePaid(
     .maybeSingle()
   if (!invoice) return { success: false, error: "Счёт не найден" }
 
+  // Валюту актива проверяем ДО смены статуса: иначе при несовпадении валют счёт
+  // остался бы PAID без зачисления (триггер tx_apply_balance бросил бы исключение
+  // уже после апдейта статуса). Симметрично postTaskPayout.
+  if (assetId) {
+    const { data: asset } = await supabase
+      .from("assets")
+      .select("currency")
+      .eq("id", assetId)
+      .maybeSingle()
+    if (!asset) return { success: false, error: "Актив не найден" }
+    if (asset.currency !== invoice.currency) {
+      return {
+        success: false,
+        error: `Валюта актива (${asset.currency}) не совпадает с валютой счёта (${invoice.currency})`,
+      }
+    }
+  }
+
   const { error } = await supabase
     .from("invoices")
     .update({ status: "PAID" })
